@@ -37,8 +37,13 @@ jobs:
           s = s.replace('video { object-fit: cover !important; }', 'video { width: 100% !important; height: 100% !important; object-fit: contain !important; background: #0b1118; }')
           p.write_text(s)
           PY
+          cp -R pages/. public/
           test -f public/index.html
           test -f public/main.dart.js
+          test -f public/shared/site-routes.css
+          test -f public/robots.txt
+          test -f public/sitemap.xml
+          for route in apartments buildings properties tours about contact; do test -f "public/$route/index.html"; done
           grep -q 'object-fit: contain' public/index.html
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
