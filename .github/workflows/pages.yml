@@ -29,8 +29,16 @@ jobs:
           cat site.zip.part-* > site.zip
           mkdir -p public
           unzip -q site.zip -d public
-          sed -i 's#<base href="/">#<base href="/safwat-property-site/">#' public/index.html
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('public/index.html')
+          s = p.read_text()
+          s = s.replace('<base href="/">', '<base href="/safwat-property-site/">')
+          s = s.replace('video { object-fit: cover !important; }', 'video { width: 100% !important; height: 100% !important; object-fit: contain !important; background: #0b1118; }')
+          p.write_text(s)
+          PY
           test -f public/index.html
+          grep -q 'object-fit: contain' public/index.html
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
