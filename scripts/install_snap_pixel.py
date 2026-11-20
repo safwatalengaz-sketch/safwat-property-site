@@ -1,6 +1,8 @@
+from hashlib import sha256
 from pathlib import Path
 
 output = Path("public")
+version = sha256((output / "shared" / "snap-pixel.js").read_bytes()).hexdigest()[:12]
 routes = ("apartments", "buildings", "properties", "tours", "about", "contact")
 for route in ("", *routes):
     page = output / route / "index.html"
@@ -9,7 +11,7 @@ for route in ("", *routes):
         raise SystemExit(f"Unexpected Snap Pixel injection point: {page}")
     src = "../shared/snap-pixel.js" if route else "shared/snap-pixel.js"
     flutter = "" if route else " data-flutter"
-    tag = f'  <script defer src="{src}"{flutter}></script>\n'
+    tag = f'  <script defer src="{src}?v={version}"{flutter}></script>\n'
     rendered = source.replace("</head>", tag + "</head>")
     if not route:
         if rendered.count("</body>") != 1:
