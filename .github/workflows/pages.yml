@@ -38,6 +38,7 @@ jobs:
           p.write_text(s)
           PY
           cp -R pages/. public/
+          python3 scripts/install_snap_pixel.py
           test -f public/index.html
           test -f public/main.dart.js
           test -f public/shared/site-routes.css
