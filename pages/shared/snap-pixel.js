@@ -1,6 +1,7 @@
 (() => {
   'use strict';
-  if (document.querySelector('[data-safwat-privacy]')) return;
+  if (window.safwatPixelReady) return;
+  window.safwatPixelReady = true;
 
   const pixelId = '070d7c58-8d60-4a03-a0a8-99455901ea3b';
   const preferenceKey = 'safwat-snap-marketing-v1';
@@ -47,20 +48,15 @@
     }
   }
 
-  const settings = document.createElement('button');
-  settings.type = 'button';
-  settings.dataset.safwatPrivacy = '';
-  settings.textContent = 'خصوصية الإعلانات';
-  settings.style.cssText = 'position:fixed;inset-inline-end:8px;top:72px;z-index:1000;padding:5px 8px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#132638;font:12px system-ui;cursor:pointer';
-  document.body.append(settings);
+  const settings = document.querySelector('[data-safwat-privacy]');
 
   const dialog = document.createElement('dialog');
   dialog.dir = 'rtl';
   dialog.setAttribute('aria-label', 'خصوصية الإعلانات');
   dialog.style.cssText = 'max-width:min(360px,85vw);border:1px solid #ddd;border-radius:12px;padding:18px;color:#132638;background:#fff;font:16px system-ui';
-  dialog.innerHTML = '<p>هل توافق على استخدام Snapchat Pixel لقياس زيارات الصفحات ونقرات الاتصال وواتساب؟ قد يستخدم سناب ملفات تعريف الارتباط لهذا القياس. يمكنك تغيير اختيارك من زر خصوصية الإعلانات.</p><button type="button" data-choice="allow">أوافق</button> <button type="button" data-choice="deny">رفض</button>';
-  document.body.append(dialog);
-  settings.addEventListener('click', () => dialog.showModal());
+  dialog.innerHTML = '<p>هل توافق على استخدام Snapchat Pixel لقياس زيارات الصفحات ونقرات الاتصال وواتساب؟ قد يستخدم سناب ملفات تعريف الارتباط لهذا القياس. يمكنك تغيير اختيارك من إعدادات الخصوصية في صفحة التواصل.</p><button type="button" data-choice="allow">أوافق</button> <button type="button" data-choice="deny">رفض</button>';
+  if (settings) document.body.append(dialog);
+  settings?.addEventListener('click', () => dialog.showModal());
   dialog.addEventListener('click', (event) => {
     const choice = event.target.closest('button[data-choice]')?.dataset.choice;
     if (!choice) return;
