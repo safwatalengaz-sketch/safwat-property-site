@@ -1,0 +1,16 @@
+{
+  "name": "صفوة الإنجاز العقارية",
+  "short_name": "صفوة الإنجاز",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#F6F7F9",
+  "theme_color": "#102B3F",
+  "description": "تطبيق صفوة الإنجاز للخدمات العقارية في المدينة المنورة.",
+  "lang": "ar",
+  "dir": "rtl",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false,
+  "icons": [
+    { "src": "safwat-logo.jpeg", "sizes": "any", "type": "image/jpeg" }
+  ]
+}

@@ -1,0 +1,67 @@
+name: safwat_property_app
+description: "صفوة الإنجاز العقارية - تطبيق عقاري"
+publish_to: 'none'
+version: 1.0.0+1
+environment:
+  sdk: ^3.14.0
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  font_awesome_flutter: ^11.0.0
+  url_launcher: ^6.3.3
+  video_player: ^2.14.1
+  flutter_map: 8.3.2
+  latlong2: 0.10.1
+  audioplayers: 6.8.1
+  go_router: ^18.1.4
+  flutter_web_plugins:
+    sdk: flutter
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/audio/splash-chime.wav
+    - assets/logo/
+    - assets/images/banners/home-banner.png
+    - assets/images/banners/works-banner.png
+    - assets/images/company/commercial-registration.png
+    - assets/images/property/01-city-aerial.jpg
+    - assets/images/property/02-rooftop-aerial.jpg
+    - assets/images/property/03-building-front-evening.jpg
+    - assets/images/property/04-building-front-day.jpg
+    - assets/images/property/05-room-wide.jpg
+    - assets/images/property/06-room-doorway.jpg
+    - assets/images/property/07-bedroom-entry.jpg
+    - assets/images/property/08-hall-bathroom.jpg
+    - assets/images/property/09-room-ceiling.jpg
+    - assets/images/property/10-stairwell-window.jpg
+    - assets/images/property/11-interior-door.jpg
+    - assets/images/property/12-living-area.jpg
+    - assets/images/property/13-main-corridor.jpg
+    - assets/images/property/14-bedroom-corner.jpg
+    - assets/images/property/15-elevator-lobby.jpg
+    - assets/images/property/16-staircase.jpg
+    - assets/images/property/17-bathroom.jpg
+    - assets/images/property/18-double-vanity.jpg
+    - assets/images/property/19-ceiling-detail.jpg
+    - assets/images/property/20-bedroom-window.jpg
+    - assets/videos/property-tour.mp4
+    - assets/videos/property-tour-2.mp4
+    - assets/videos/property-tour-3.mp4
+  fonts:
+    - family: Tajawal
+      fonts:
+        - asset: assets/fonts/Tajawal-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Tajawal-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Tajawal-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Tajawal-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/Tajawal-Black.ttf
+          weight: 900

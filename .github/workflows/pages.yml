@@ -23,35 +23,27 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-      - name: Rebuild website package
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.50.0"
+          channel: stable
+          cache: true
+      - name: Check and build Flutter
+        working-directory: flutter_app
         run: |
-          cat site.zip.part-* > site.zip
-          mkdir -p public
-          unzip -q site.zip -d public
-          cp main.dart.js public/main.dart.js
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path('public/index.html')
-          s = p.read_text()
-          s = s.replace('<base href="/">', '<base href="/safwat-property-site/">')
-          s = s.replace('video { object-fit: cover !important; }', 'video { width: 100% !important; height: 100% !important; object-fit: contain !important; background: #0b1118; }')
-          p.write_text(s)
-          PY
-          cp -R pages/. public/
-          python3 scripts/install_snap_pixel.py
-          test -f public/index.html
-          test -f public/main.dart.js
-          test -f public/shared/site-routes.css
-          test -f public/robots.txt
-          test -f public/sitemap.xml
-          for route in apartments buildings properties tours about contact; do test -f "public/$route/index.html"; done
-          grep -q 'object-fit: contain' public/index.html
+          flutter pub get --enforce-lockfile
+          flutter analyze
+          flutter test
+          flutter build web --release --base-href /safwat-property-site/
+      - name: Keep direct links to Flutter screens
+        run: python3 scripts/prepare_flutter_pages.py
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: public
+          path: flutter_app/build/web
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

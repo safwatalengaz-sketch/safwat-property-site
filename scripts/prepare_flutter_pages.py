@@ -1,0 +1,49 @@
+"""Keep existing ad URLs as entry points to the same Flutter web application."""
+
+from hashlib import sha256
+from html import escape
+from pathlib import Path
+import re
+
+SITE = "https://safwatalengaz-sketch.github.io/safwat-property-site/"
+ROUTES = {
+    "": ("صفوة الإنجاز العقارية", "عقارات في المدينة المنورة. شاهد تفاصيل العقار والصور والجولات وتواصل معنا."),
+    "works": ("أعمالنا", "استعرض الشقق والعمائر وتفاصيل العقارات والجولات المصورة."),
+    "apartments": ("الشقق المعروضة للبيع", "شقة أرضية بمساحة ١٨٥ م² في حي الملك فهد بالمدينة المنورة."),
+    "buildings": ("العمائر السكنية", "عمارة سكنية من ثلاثة أدوار تضم ست شقق في حي الملك فهد."),
+    "properties": ("تفاصيل العقار", "تعرف على مواصفات العقار وصوره وطرق التواصل في المدينة المنورة."),
+    "tours": ("الجولات العقارية المصورة", "شاهد مقاطع فيديو العقار في حي الملك فهد."),
+    "about": ("من نحن", "تعرف على صفوة الإنجاز العقارية وخدماتها في المدينة المنورة."),
+    "contact": ("التواصل والاستفسارات", "تواصل مع صفوة الإنجاز العقارية بالهاتف أو واتساب."),
+}
+
+output = Path("flutter_app/build/web")
+shell = (output / "index.html").read_text(encoding="utf-8")
+for script in ("marketing-config.js", "marketing.js"):
+    version = sha256((output / script).read_bytes()).hexdigest()[:12]
+    shell = shell.replace(f'src="{script}"', f'src="{script}?v={version}"')
+
+for route, (title, description) in ROUTES.items():
+    folder = output / route
+    folder.mkdir(exist_ok=True)
+    canonical = SITE + (route + "/" if route else "")
+    title = escape(title + (" | صفوة الإنجاز" if route else ""))
+    description = escape(description)
+    page = re.sub(r"<title>[^<]*</title>", f"<title>{title}</title>", shell)
+    for attribute, key, value in (
+        ("name", "description", description),
+        ("property", "og:title", title),
+        ("property", "og:description", description),
+        ("property", "og:image", SITE + "safwat-share.png"),
+    ):
+        page = re.sub(
+            rf'<meta {attribute}="{key}" content="[^"]*">',
+            f'<meta {attribute}="{key}" content="{value}">',
+            page,
+        )
+    page = page.replace(
+        "</head>",
+        f'  <link rel="canonical" href="{canonical}">\n'
+        f'  <meta property="og:url" content="{canonical}">\n</head>',
+    )
+    (folder / "index.html").write_text(page, encoding="utf-8")
