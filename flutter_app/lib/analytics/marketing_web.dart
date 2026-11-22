@@ -1,5 +1,8 @@
 import 'dart:js_interop';
 
+@JS('safwatMarketing.hasPreference')
+external JSBoolean _hasPreference();
+
 @JS('safwatMarketing.allowed')
 external JSBoolean _allowed();
 
@@ -13,6 +16,7 @@ external void _page(JSString path);
 external void _contact(JSString channel);
 
 bool get available => true;
+bool get hasPreference => _hasPreference().toDart;
 bool get allowed => _allowed().toDart;
 void setAllowed(bool value) => _setAllowed(value.toJS);
 void page(String path) => _page(path.toJS);

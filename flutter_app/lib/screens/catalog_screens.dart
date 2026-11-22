@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../analytics/marketing.dart';
 import '../app.dart';
 import '../data/property_data.dart';
 import 'contact_screen.dart';
@@ -83,6 +84,7 @@ class _CatalogPage extends StatelessWidget {
                 ?.copyWith(color: AppColors.navy),
           ),
           const SizedBox(height: 16),
+          if (Marketing.available) const _MarketingChoice(),
           AppCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -93,6 +95,50 @@ class _CatalogPage extends StatelessWidget {
       ),
     ),
   );
+}
+
+class _MarketingChoice extends StatefulWidget {
+  const _MarketingChoice();
+
+  @override
+  State<_MarketingChoice> createState() => _MarketingChoiceState();
+}
+
+class _MarketingChoiceState extends State<_MarketingChoice> {
+  void _choose(bool allowed) {
+    Marketing.setAllowed(allowed);
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (Marketing.hasPreference) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: AppCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('يمكنك السماح بقياس زيارات الإعلانات ونقرات التواصل.'),
+            Wrap(
+              spacing: 8,
+              children: [
+                TextButton(
+                  onPressed: () => _choose(true),
+                  child: const Text('السماح بالقياس'),
+                ),
+                TextButton(
+                  onPressed: () => _choose(false),
+                  child: const Text('المتابعة دون قياس'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _PropertyActions extends StatelessWidget {

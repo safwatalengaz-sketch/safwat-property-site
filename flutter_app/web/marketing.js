@@ -3,16 +3,19 @@
 
   const config = window.safwatMarketingConfig;
   const preferenceKey = 'safwat-snap-marketing-v1';
-  let allowed = false;
+  const landingUrl = location.href;
+  let preference;
   let currentPage;
   let lastSentPage;
   let initialized = false;
 
   try {
-    allowed = localStorage.getItem(preferenceKey) === 'allow';
+    preference = localStorage.getItem(preferenceKey);
   } catch {
     // Tracking stays off when the preference is unavailable.
   }
+
+  const allowed = () => preference === 'allow';
 
   function loadScript(src) {
     const script = document.createElement('script');
@@ -35,9 +38,20 @@
   function initializeGoogle(tagId) {
     window.dataLayer = window.dataLayer || [];
     window.gtag = function () { window.dataLayer.push(arguments); };
+    window.gtag('consent', 'default', {
+      ad_storage: 'denied',
+      ad_user_data: 'denied',
+      ad_personalization: 'denied',
+      analytics_storage: 'denied',
+    });
+    window.gtag('consent', 'update', {
+      ad_storage: 'granted',
+      ad_user_data: 'granted',
+    });
     window.gtag('js', new Date());
     window.gtag('config', tagId, {
       allow_ad_personalization_signals: false,
+      page_location: landingUrl,
     });
     loadScript('https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(tagId));
   }
@@ -75,32 +89,39 @@
   }
 
   function sendPage() {
-    if (!allowed || !currentPage || lastSentPage === currentPage) return;
+    if (!allowed() || !currentPage || lastSentPage === currentPage) return;
     initialize();
     if (config.snapPixelId) window.snaptr('track', 'PAGE_VIEW');
     lastSentPage = currentPage;
   }
 
   window.safwatMarketing = {
-    allowed: () => allowed,
+    allowed,
+    hasPreference: () => preference === 'allow' || preference === 'deny',
     setAllowed(value) {
-      allowed = value;
+      preference = value ? 'allow' : 'deny';
       let saved = false;
       try {
-        localStorage.setItem(preferenceKey, value ? 'allow' : 'deny');
+        localStorage.setItem(preferenceKey, preference);
         saved = true;
       } catch {
         // The choice still applies to events in this document.
       }
       if (value) sendPage();
-      else if (initialized && saved) location.reload();
+      else if (initialized) {
+        window.gtag?.('consent', 'update', {
+          ad_storage: 'denied',
+          ad_user_data: 'denied',
+        });
+        if (saved) location.reload();
+      }
     },
     page(path) {
       currentPage = path;
       sendPage();
     },
     contact(channel) {
-      if (!allowed) return;
+      if (!allowed()) return;
       if (channel !== 'phone' && channel !== 'whatsapp') return;
       initialize();
       if (config.snapPixelId) {
