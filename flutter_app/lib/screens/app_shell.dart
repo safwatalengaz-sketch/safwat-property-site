@@ -158,7 +158,7 @@ class AppShell extends StatelessWidget {
     AppSection.about,
     AppSection.contact,
   ];
-  static const labels = ['الرئيسية', 'أعمالنا', 'من نحن', 'تواصل'];
+  static const labels = ['الرئيسية', 'عقار', 'من نحن', 'تواصل'];
   static const icons = [
     Icons.home_rounded,
     Icons.apartment_rounded,
@@ -269,7 +269,7 @@ class AppShell extends StatelessWidget {
 }
 
 class _FloatingNav extends StatelessWidget {
-  static const labels = ['الرئيسية', 'أعمالنا', 'من نحن', 'تواصل'];
+  static const labels = ['الرئيسية', 'عقار', 'من نحن', 'تواصل'];
   static const icons = [
     Icons.home_rounded,
     Icons.apartment_rounded,

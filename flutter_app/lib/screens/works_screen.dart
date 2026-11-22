@@ -20,7 +20,7 @@ class WorksScreen extends StatelessWidget {
             const Eyebrow('مشاريع مختارة'),
             const SizedBox(height: 5),
             Text(
-              'أعمالنا',
+              'عقار',
               style: Theme.of(context).textTheme.headlineMedium
                   ?.copyWith(color: AppColors.navy),
             ),
