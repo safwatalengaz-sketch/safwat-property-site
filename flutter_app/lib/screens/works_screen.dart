@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../app.dart';
 import '../data/property_data.dart';
+import '../widgets/marketing_choice.dart';
 
 class WorksScreen extends StatelessWidget {
   const WorksScreen({super.key, required this.onOpenProperty});
@@ -46,6 +47,7 @@ class WorksScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
+            const MarketingChoice(),
             AppCard(
               padding: EdgeInsets.zero,
               onTap: onOpenProperty,

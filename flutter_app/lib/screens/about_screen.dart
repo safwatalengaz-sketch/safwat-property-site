@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../app.dart';
 import '../data/property_data.dart';
 import '../widgets/common.dart';
+import '../widgets/marketing_choice.dart';
 import 'contact_screen.dart';
 
 class AboutScreen extends StatelessWidget {
@@ -60,6 +61,7 @@ class AboutScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
+            const MarketingChoice(),
             const SectionTitle('خدماتنا العقارية'),
             const SizedBox(height: 11),
             const AppCard(

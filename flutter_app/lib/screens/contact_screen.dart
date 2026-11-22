@@ -8,6 +8,7 @@ import '../analytics/marketing.dart';
 import '../app.dart';
 import '../data/property_data.dart';
 import '../widgets/common.dart';
+import '../widgets/marketing_choice.dart';
 
 class ContactScreen extends StatelessWidget {
   const ContactScreen({super.key});
@@ -49,6 +50,7 @@ class ContactScreen extends StatelessWidget {
               style: TextStyle(color: AppColors.muted),
             ),
             const SizedBox(height: 21),
+            const MarketingChoice(),
             _ContactTile(
               icon: const Icon(Icons.call_rounded),
               color: AppColors.navy,

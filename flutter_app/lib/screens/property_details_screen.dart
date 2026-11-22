@@ -7,6 +7,7 @@ import 'package:video_player/video_player.dart';
 import '../app.dart';
 import '../data/property_data.dart';
 import '../widgets/common.dart';
+import '../widgets/marketing_choice.dart';
 import 'contact_screen.dart';
 
 class PropertyDetailsScreen extends StatefulWidget {
@@ -67,6 +68,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 30),
             children: [
+              const MarketingChoice(),
               _galleryCard(),
               const SizedBox(height: 18),
               const Eyebrow(PropertyData.location),

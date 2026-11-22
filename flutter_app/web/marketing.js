@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const config = window.safwatMarketingConfig;
+  const config = window.safwatMarketingConfig || {};
   const preferenceKey = 'safwat-snap-marketing-v1';
   const landingUrl = location.href;
   let preference;
@@ -22,6 +22,14 @@
     script.async = true;
     script.src = src;
     document.head.append(script);
+  }
+
+  function dispatch(platform, send) {
+    try {
+      send();
+    } catch (error) {
+      console.warn('Safwat measurement failed for ' + platform, error);
+    }
   }
 
   function initializeSnap(pixelId) {
@@ -83,15 +91,15 @@
   function initialize() {
     if (initialized) return;
     initialized = true;
-    if (config.snapPixelId) initializeSnap(config.snapPixelId);
-    if (config.googleAdsTagId) initializeGoogle(config.googleAdsTagId);
-    if (config.tiktokPixelId) initializeTikTok(config.tiktokPixelId);
+    if (config.snapPixelId) dispatch('Snapchat', () => initializeSnap(config.snapPixelId));
+    if (config.googleAdsTagId) dispatch('Google Ads', () => initializeGoogle(config.googleAdsTagId));
+    if (config.tiktokPixelId) dispatch('TikTok', () => initializeTikTok(config.tiktokPixelId));
   }
 
   function sendPage() {
     if (!allowed() || !currentPage || lastSentPage === currentPage) return;
     initialize();
-    if (config.snapPixelId) window.snaptr('track', 'PAGE_VIEW');
+    if (config.snapPixelId) dispatch('Snapchat', () => window.snaptr('track', 'PAGE_VIEW'));
     lastSentPage = currentPage;
   }
 
@@ -125,12 +133,16 @@
       if (channel !== 'phone' && channel !== 'whatsapp') return;
       initialize();
       if (config.snapPixelId) {
-        window.snaptr('track', channel === 'phone' ? 'CUSTOM_EVENT_1' : 'CUSTOM_EVENT_2');
+        dispatch('Snapchat', () => {
+          window.snaptr('track', channel === 'phone' ? 'CUSTOM_EVENT_1' : 'CUSTOM_EVENT_2');
+        });
       }
-      if (config.tiktokPixelId) window.ttq.track('Contact');
+      if (config.tiktokPixelId) dispatch('TikTok', () => window.ttq.track('Contact'));
       const label = channel === 'phone' ? config.googleAdsPhoneLabel : config.googleAdsWhatsAppLabel;
       if (config.googleAdsTagId && label) {
-        window.gtag('event', 'conversion', { send_to: config.googleAdsTagId + '/' + label });
+        dispatch('Google Ads', () => {
+          window.gtag('event', 'conversion', { send_to: config.googleAdsTagId + '/' + label });
+        });
       }
     },
   };

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../app.dart';
 import '../data/property_data.dart';
+import '../widgets/marketing_choice.dart';
 import 'contact_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -51,6 +52,7 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
+              const MarketingChoice(),
               AppCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
