@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import 'analytics/marketing.dart';
 import 'data/property_data.dart';
 import 'data/salam_offer.dart';
 import 'screens/app_shell.dart';
+import 'screens/contact_screen.dart';
 import 'screens/property_details_screen.dart';
 
 class AppColors {
@@ -182,5 +184,42 @@ class _MeasuredScreenState extends State<_MeasuredScreen> {
   });
 
   @override
-  Widget build(BuildContext context) => widget.child;
+  Widget build(BuildContext context) => Stack(
+    fit: StackFit.expand,
+    children: [
+      widget.child,
+      SafeArea(
+        minimum: const EdgeInsets.only(right: 8),
+        child: Align(
+          alignment: Alignment.centerRight,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton.filled(
+                tooltip: 'تواصل عبر واتساب',
+                style: IconButton.styleFrom(
+                  minimumSize: const Size.square(48),
+                  backgroundColor: const Color(0xFF087648),
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () => ContactScreen.whatsapp(context),
+                icon: const FaIcon(FontAwesomeIcons.whatsapp, size: 24),
+              ),
+              const SizedBox(height: 8),
+              IconButton.filled(
+                tooltip: 'اتصل بنا',
+                style: IconButton.styleFrom(
+                  minimumSize: const Size.square(48),
+                  backgroundColor: AppColors.navy,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () => ContactScreen.call(context),
+                icon: const Icon(Icons.call_rounded, size: 23),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ],
+  );
 }
