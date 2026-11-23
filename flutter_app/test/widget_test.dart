@@ -19,7 +19,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(PropertyDetailsScreen), findsOneWidget);
-    expect(find.text(SalamOffer.advertisingLicenseLabel), findsOneWidget);
   });
 
   testWidgets('app starts with its Arabic splash screen', (tester) async {
@@ -72,15 +71,19 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byTooltip('مشاركة'), findsNothing);
+    final details = find
+        .descendant(
+          of: find.byType(ListView).first,
+          matching: find.byType(Scrollable),
+        )
+        .first;
+    final license = find.text(SalamOffer.advertisingLicenseLabel);
+    await tester.scrollUntilVisible(license, 300, scrollable: details);
+    expect(license, findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('محجوز'),
       500,
-      scrollable: find
-          .descendant(
-            of: find.byType(ListView).first,
-            matching: find.byType(Scrollable),
-          )
-          .first,
+      scrollable: details,
     );
     expect(find.text('الدور الأول'), findsOneWidget);
     expect(find.text('موقع العقار'), findsNothing);
