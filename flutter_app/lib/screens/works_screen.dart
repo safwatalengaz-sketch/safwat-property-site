@@ -82,8 +82,16 @@ class SalamOfferCard extends StatelessWidget {
   Widget build(BuildContext context) => _ListingCard(
     cover: Image.asset(SalamOffer.cover, fit: BoxFit.contain),
     title: SalamOffer.title,
-    subtitle: const Eyebrow(
-      'عرض ${SalamOffer.reference} · ${SalamOffer.district}',
+    subtitle: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Eyebrow('عرض ${SalamOffer.reference} · ${SalamOffer.district}'),
+        const SizedBox(height: 4),
+        Text(
+          SalamOffer.advertisingLicenseLabel,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ],
     ),
     facts: const [SalamOffer.area, 'كل شقة دور كامل', 'مصعد'],
     onTap: () => context.go(SalamOffer.path),

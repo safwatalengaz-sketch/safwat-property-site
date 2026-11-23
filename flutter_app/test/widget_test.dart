@@ -14,10 +14,12 @@ void main() {
     final offer = find.byType(SalamOfferCard);
     await tester.ensureVisible(offer);
     await tester.pumpAndSettle();
+    expect(find.text(SalamOffer.advertisingLicenseLabel), findsOneWidget);
     await tester.tap(find.text(SalamOffer.title).hitTestable());
     await tester.pumpAndSettle();
 
     expect(find.byType(PropertyDetailsScreen), findsOneWidget);
+    expect(find.text(SalamOffer.advertisingLicenseLabel), findsOneWidget);
   });
 
   testWidgets('app starts with its Arabic splash screen', (tester) async {

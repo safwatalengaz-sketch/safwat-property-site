@@ -1,6 +1,9 @@
 abstract final class SalamOffer {
   static const path = '/properties/mb-246';
   static const reference = 'MB:246';
+  static const advertisingLicense = '4105021203';
+  static const advertisingLicenseLabel =
+      'ترخيص الإعلان العقاري: $advertisingLicense';
   static const cover = 'assets/images/mb-246/cover.png';
   static const title = 'ثلاث شقق فاخرة للبيع';
   static const district = 'حي السلام، المدينة المنورة';
