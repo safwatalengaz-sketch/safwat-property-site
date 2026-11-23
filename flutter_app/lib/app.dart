@@ -187,7 +187,12 @@ class _MeasuredScreenState extends State<_MeasuredScreen> {
   Widget build(BuildContext context) => Stack(
     fit: StackFit.expand,
     children: [
-      widget.child,
+      Padding(
+        padding: EdgeInsets.only(
+          right: MediaQuery.sizeOf(context).width < 760 ? 48 : 0,
+        ),
+        child: widget.child,
+      ),
       SafeArea(
         minimum: const EdgeInsets.only(right: 8),
         child: Align(

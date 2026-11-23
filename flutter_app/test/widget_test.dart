@@ -111,6 +111,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byTooltip('مشاركة'), findsNothing);
+    final whatsapp = find.byTooltip('تواصل عبر واتساب');
+    final phone = find.byTooltip('اتصل بنا');
+    final whatsappCenter = tester.getCenter(whatsapp);
+    final phoneCenter = tester.getCenter(phone);
+    expect(whatsappCenter.dx, greaterThan(330));
+    expect(phoneCenter.dx, whatsappCenter.dx);
+    expect((whatsappCenter.dy + phoneCenter.dy) / 2, 422);
     final details = find
         .descendant(
           of: find.byType(ListView).first,
@@ -126,6 +133,8 @@ void main() {
     expect(find.text('موقع العقار'), findsNothing);
     final license = find.text(SalamOffer.advertisingLicenseLabel);
     await tester.scrollUntilVisible(license, 300, scrollable: details);
+    expect(tester.getCenter(whatsapp), whatsappCenter);
+    expect(tester.getCenter(phone), phoneCenter);
     expect(tester.widget<Text>(license).style?.fontSize, 12);
     expect(tester.takeException(), isNull);
   });
