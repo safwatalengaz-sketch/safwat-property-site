@@ -84,10 +84,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                     ? SalamOffer.district
                     : PropertyData.location,
               ),
-              if (widget.isSalamOffer) ...[
+              if (widget.isSalamOffer)
                 const Text('رقم العرض ${SalamOffer.reference}'),
-                const Text(SalamOffer.advertisingLicenseLabel),
-              ],
               const SizedBox(height: 4),
               Text(
                 widget.isSalamOffer ? SalamOffer.title : PropertyData.title,
@@ -255,6 +253,13 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   ),
                 ],
               ),
+              if (widget.isSalamOffer) ...[
+                const SizedBox(height: 16),
+                const Text(
+                  SalamOffer.advertisingLicenseLabel,
+                  style: TextStyle(color: AppColors.muted, fontSize: 12),
+                ),
+              ],
             ],
           ),
         ),

@@ -14,7 +14,7 @@ void main() {
     final offer = find.byType(SalamOfferCard);
     await tester.ensureVisible(offer);
     await tester.pumpAndSettle();
-    expect(find.text(SalamOffer.advertisingLicenseLabel), findsOneWidget);
+    expect(find.text(SalamOffer.advertisingLicenseLabel), findsNothing);
     await tester.tap(find.text(SalamOffer.title).hitTestable());
     await tester.pumpAndSettle();
 
@@ -77,9 +77,6 @@ void main() {
           matching: find.byType(Scrollable),
         )
         .first;
-    final license = find.text(SalamOffer.advertisingLicenseLabel);
-    await tester.scrollUntilVisible(license, 300, scrollable: details);
-    expect(license, findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('محجوز'),
       500,
@@ -87,6 +84,9 @@ void main() {
     );
     expect(find.text('الدور الأول'), findsOneWidget);
     expect(find.text('موقع العقار'), findsNothing);
+    final license = find.text(SalamOffer.advertisingLicenseLabel);
+    await tester.scrollUntilVisible(license, 300, scrollable: details);
+    expect(tester.widget<Text>(license).style?.fontSize, 12);
     expect(tester.takeException(), isNull);
   });
 }
