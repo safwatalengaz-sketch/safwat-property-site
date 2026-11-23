@@ -6,16 +6,56 @@ import 'package:safwat_property_app/screens/property_details_screen.dart';
 import 'package:safwat_property_app/screens/works_screen.dart';
 
 void main() {
-  testWidgets('home links to MB:246 from the property card', (tester) async {
+  testWidgets('home shows matching property cards with contact and details', (
+    tester,
+  ) async {
     await tester.pumpWidget(const SafwatApp());
     await tester.pumpAndSettle();
 
     expect(find.text('عقار'), findsOneWidget);
-    final offer = find.byType(SalamOfferCard);
-    await tester.ensureVisible(offer);
+    expect(find.text('العقارات المتاحة'), findsOneWidget);
+    final kingFahd = find.byType(KingFahdBuildingCard);
+    final salam = find.byType(SalamOfferCard);
+    for (final card in [kingFahd, salam]) {
+      Finder action(String label) =>
+          find.descendant(of: card, matching: find.text(label));
+      final browse = action('استعراض العقار');
+      expect(browse, findsOneWidget);
+      for (final label in ['اتصال', 'واتساب']) {
+        final contact = action(label);
+        expect(contact, findsOneWidget);
+        expect(
+          tester.getCenter(contact).dy,
+          lessThan(tester.getCenter(browse).dy),
+        );
+      }
+    }
+    final buildingDetails = find.descendant(
+      of: kingFahd,
+      matching: find.text('استعراض العقار'),
+    );
+    await tester.ensureVisible(buildingDetails);
+    await tester.pumpAndSettle();
+    await tester.tap(buildingDetails);
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<PropertyDetailsScreen>(find.byType(PropertyDetailsScreen))
+          .isBuilding,
+      isTrue,
+    );
+    await tester.tap(find.byIcon(Icons.arrow_forward_rounded).hitTestable());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('الرئيسية').hitTestable());
+    await tester.pumpAndSettle();
+    final details = find.descendant(
+      of: salam,
+      matching: find.text('استعراض العقار'),
+    );
+    await tester.ensureVisible(details);
     await tester.pumpAndSettle();
     expect(find.text(SalamOffer.advertisingLicenseLabel), findsNothing);
-    await tester.tap(find.text(SalamOffer.title).hitTestable());
+    await tester.tap(details);
     await tester.pumpAndSettle();
 
     expect(find.byType(PropertyDetailsScreen), findsOneWidget);

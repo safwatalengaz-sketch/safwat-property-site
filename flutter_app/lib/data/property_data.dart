@@ -5,6 +5,14 @@ import '../app.dart';
 class PropertyData {
   static const title = 'شقة مميزة للبيع';
   static const area = '١٨٥ م²';
+  static const buildingPath = '/properties/king-fahd-building';
+  static const buildingTitle = 'عمارة سكنية في حي الملك فهد';
+  static const buildingUpperArea = '٢٠٠ م²';
+  static const buildingDescription =
+      'عمارة سكنية من ٣ أدوار تضم ٦ شقق. يوجد مصعد وموقف خاص لكل شقة، '
+      'وللشقق العلوية أسطح خاصة.';
+  static const buildingInquiry =
+      'السلام عليكم، أود الاستفسار عن العمارة في حي الملك فهد.';
   static const location = 'حي الملك فهد – المدينة المنورة';
   static const descriptionIntro =
       'تدور على شقة مميزة بالمدينة المنورة، بموقع مميز وتصميم يجمع بين الفخامة والخصوصية؟\n\nتقع الشقة في حي الملك فهد، مع سهولة الوصول للمسجد النبوي، ومحطة قطار الحرمين، ومطار الأمير محمد بن عبدالعزيز. تعرّف على التفاصيل:';

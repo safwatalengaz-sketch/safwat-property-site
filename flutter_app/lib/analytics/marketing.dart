@@ -4,7 +4,6 @@ import 'marketing_stub.dart'
 
 abstract final class Marketing {
   static bool get available => platform.available;
-  static bool get hasPreference => platform.hasPreference;
   static bool get allowed => platform.allowed;
   static void setAllowed(bool value) => platform.setAllowed(value);
   static void page(String path) => platform.page(path);

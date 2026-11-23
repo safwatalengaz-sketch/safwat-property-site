@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'analytics/marketing.dart';
+import 'data/property_data.dart';
 import 'data/salam_offer.dart';
 import 'screens/app_shell.dart';
 import 'screens/property_details_screen.dart';
@@ -26,6 +27,13 @@ class _SafwatAppState extends State<SafwatApp> {
   bool _showSplash = true;
   late final GoRouter _router = GoRouter(
     routes: [
+      GoRoute(
+        path: PropertyData.buildingPath,
+        builder: (context, state) => const _MeasuredScreen(
+          path: PropertyData.buildingPath,
+          child: PropertyDetailsScreen(isBuilding: true),
+        ),
+      ),
       GoRoute(
         path: SalamOffer.path,
         builder: (context, state) => const _MeasuredScreen(

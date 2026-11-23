@@ -1,5 +1,4 @@
 bool get available => false;
-bool get hasPreference => false;
 bool get allowed => false;
 void setAllowed(bool value) {}
 void page(String path) {}

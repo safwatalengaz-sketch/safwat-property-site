@@ -8,12 +8,16 @@ import '../app.dart';
 import '../data/property_data.dart';
 import '../data/salam_offer.dart';
 import '../widgets/common.dart';
-import '../widgets/marketing_choice.dart';
 import 'contact_screen.dart';
 
 class PropertyDetailsScreen extends StatefulWidget {
-  const PropertyDetailsScreen({super.key, this.isSalamOffer = false});
+  const PropertyDetailsScreen({
+    super.key,
+    this.isSalamOffer = false,
+    this.isBuilding = false,
+  });
   final bool isSalamOffer;
+  final bool isBuilding;
   @override
   State<PropertyDetailsScreen> createState() => _PropertyDetailsScreenState();
 }
@@ -76,7 +80,6 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 30),
             children: [
-              const MarketingChoice(),
               _galleryCard(),
               const SizedBox(height: 18),
               Eyebrow(
@@ -88,7 +91,11 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                 const Text('رقم العرض ${SalamOffer.reference}'),
               const SizedBox(height: 4),
               Text(
-                widget.isSalamOffer ? SalamOffer.title : PropertyData.title,
+                widget.isSalamOffer
+                    ? SalamOffer.title
+                    : widget.isBuilding
+                    ? PropertyData.buildingTitle
+                    : PropertyData.title,
                 style: Theme.of(context).textTheme.titleLarge
                     ?.copyWith(color: AppColors.navy, fontSize: 22),
               ),
@@ -105,6 +112,15 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                         ),
                         _DetailPill(Icons.elevator_outlined, 'مصعد'),
                       ]
+                    : widget.isBuilding
+                    ? const [
+                        _DetailPill(Icons.apartment_outlined, '٣ أدوار'),
+                        _DetailPill(Icons.meeting_room_outlined, '٦ شقق'),
+                        _DetailPill(
+                          Icons.local_parking_rounded,
+                          'مواقف سيارات',
+                        ),
+                      ]
                     : const [
                         _DetailPill(Icons.square_foot_rounded, '١٨٥ م²'),
                         _DetailPill(Icons.bed_outlined, '٣ غرف نوم'),
@@ -112,12 +128,20 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       ],
               ),
               const SizedBox(height: 22),
-              SectionTitle(widget.isSalamOffer ? 'وصف العرض' : 'وصف الشقة'),
+              SectionTitle(
+                widget.isSalamOffer
+                    ? 'وصف العرض'
+                    : widget.isBuilding
+                    ? 'وصف العمارة'
+                    : 'وصف الشقة',
+              ),
               const SizedBox(height: 10),
               AppCard(
                 child: Text(
                   widget.isSalamOffer
                       ? SalamOffer.description
+                      : widget.isBuilding
+                      ? PropertyData.buildingDescription
                       : PropertyData.descriptionIntro,
                   style: const TextStyle(
                     color: AppColors.ink,
@@ -155,7 +179,18 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       ),
                     ),
                   ),
-              ] else ...[
+              ] else if (widget.isBuilding)
+                const AppCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('الدور الأرضي: ${PropertyData.area}'),
+                      SizedBox(height: 6),
+                      Text('الدور الثاني: ${PropertyData.buildingUpperArea}'),
+                    ],
+                  ),
+                )
+              else ...[
                 _featuresCard(),
                 const SizedBox(height: 10),
                 const AppCard(
@@ -221,11 +256,13 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                const Text(
-                  'ترخيص الإعلان العقاري: ${PropertyData.license}',
-                  style: TextStyle(color: AppColors.muted, fontSize: 12),
-                ),
+                if (!widget.isBuilding) ...[
+                  const SizedBox(height: 16),
+                  const Text(
+                    'ترخيص الإعلان العقاري: ${PropertyData.license}',
+                    style: TextStyle(color: AppColors.muted, fontSize: 12),
+                  ),
+                ],
               ],
               const SizedBox(height: 18),
               Row(
@@ -246,6 +283,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                         context,
                         message: widget.isSalamOffer
                             ? 'السلام عليكم، أود الاستفسار عن العرض ${SalamOffer.reference}.'
+                            : widget.isBuilding
+                            ? PropertyData.buildingInquiry
                             : null,
                       ),
                       gold: true,

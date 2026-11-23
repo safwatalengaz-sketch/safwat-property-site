@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../app.dart';
 import '../data/property_data.dart';
 import '../data/salam_offer.dart';
-import '../widgets/marketing_choice.dart';
+import 'contact_screen.dart';
 
 class WorksScreen extends StatelessWidget {
   const WorksScreen({super.key, required this.onOpenProperty});
@@ -48,7 +49,6 @@ class WorksScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            const MarketingChoice(),
             _ListingCard(
               cover: Image.asset(
                 'assets/images/banners/works-banner.png',
@@ -56,7 +56,7 @@ class WorksScreen extends StatelessWidget {
               ),
               title: PropertyData.title,
               subtitle: const LocationLine(text: PropertyData.location),
-              facts: const ['١٨٥ م²', '٣ غرف نوم', 'تشطيب سوبر لوكس'],
+              facts: const [PropertyData.area, '٣ غرف نوم', 'تشطيب سوبر لوكس'],
               onTap: onOpenProperty,
             ),
             const SizedBox(height: 18),
@@ -75,8 +75,33 @@ class WorksScreen extends StatelessWidget {
   );
 }
 
+class KingFahdBuildingCard extends StatelessWidget {
+  const KingFahdBuildingCard({super.key});
+
+  @override
+  Widget build(BuildContext context) => _ListingCard(
+    cover: Image.asset(
+      'assets/images/banners/home-banner.png',
+      fit: BoxFit.contain,
+    ),
+    title: PropertyData.buildingTitle,
+    subtitle: const LocationLine(text: PropertyData.location),
+    facts: const [
+      '٣ أدوار',
+      '٦ شقق',
+      'مواقف سيارات',
+      'الأرضي ${PropertyData.area}',
+      'الدور الثاني ${PropertyData.buildingUpperArea}',
+    ],
+    onTap: () => context.go(PropertyData.buildingPath),
+    contactMessage: PropertyData.buildingInquiry,
+  );
+}
+
 class SalamOfferCard extends StatelessWidget {
-  const SalamOfferCard({super.key});
+  const SalamOfferCard({super.key, this.showContact = false});
+
+  final bool showContact;
 
   @override
   Widget build(BuildContext context) => _ListingCard(
@@ -87,6 +112,9 @@ class SalamOfferCard extends StatelessWidget {
     ),
     facts: const [SalamOffer.area, 'كل شقة دور كامل', 'مصعد'],
     onTap: () => context.go(SalamOffer.path),
+    contactMessage: showContact
+        ? 'السلام عليكم، أود الاستفسار عن العرض ${SalamOffer.reference}.'
+        : null,
   );
 }
 
@@ -97,6 +125,7 @@ class _ListingCard extends StatelessWidget {
     required this.subtitle,
     required this.facts,
     required this.onTap,
+    this.contactMessage,
   });
 
   final Widget cover;
@@ -104,6 +133,7 @@ class _ListingCard extends StatelessWidget {
   final Widget subtitle;
   final List<String> facts;
   final VoidCallback onTap;
+  final String? contactMessage;
 
   @override
   Widget build(BuildContext context) => AppCard(
@@ -135,24 +165,67 @@ class _ListingCard extends StatelessWidget {
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: [for (final fact in facts) _Chip(fact)],
-              ),
-              const SizedBox(height: 13),
-              const Row(
                 children: [
-                  Expanded(
-                    child: Text(
-                      'عرض الصور والتفاصيل',
-                      style: TextStyle(
-                        color: AppColors.gold,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                  Icon(Icons.chevron_left_rounded, color: AppColors.gold),
+                  for (final fact in facts)
+                    _Chip(fact, prominent: contactMessage != null),
                 ],
               ),
+              const SizedBox(height: 13),
+              if (contactMessage == null)
+                const Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'عرض الصور والتفاصيل',
+                        style: TextStyle(
+                          color: AppColors.gold,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                    Icon(Icons.chevron_left_rounded, color: AppColors.gold),
+                  ],
+                ),
+              if (contactMessage case final message?) ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: () => ContactScreen.call(context),
+                        icon: const Icon(Icons.call_outlined, size: 18),
+                        label: const Text('اتصال'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: () =>
+                            ContactScreen.whatsapp(context, message: message),
+                        icon: const FaIcon(FontAwesomeIcons.whatsapp, size: 18),
+                        label: const Text('واتساب'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF137B49),
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: onTap,
+                    icon: const Icon(Icons.chevron_left_rounded, size: 18),
+                    label: const Text('استعراض العقار'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.navy,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -162,18 +235,22 @@ class _ListingCard extends StatelessWidget {
 }
 
 class _Chip extends StatelessWidget {
-  const _Chip(this.text);
+  const _Chip(this.text, {required this.prominent});
   final String text;
+  final bool prominent;
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
     decoration: BoxDecoration(
-      color: AppColors.background,
+      color: prominent ? AppColors.navy : AppColors.background,
       borderRadius: BorderRadius.circular(20),
     ),
     child: Text(
       text,
-      style: const TextStyle(fontSize: 11, color: AppColors.ink),
+      style: TextStyle(
+        fontSize: 11,
+        color: prominent ? Colors.white : AppColors.ink,
+      ),
     ),
   );
 }

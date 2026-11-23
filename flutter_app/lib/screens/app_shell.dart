@@ -177,10 +177,7 @@ class AppShell extends StatelessWidget {
       _ => 1,
     };
     final content = switch (section) {
-      AppSection.home => HomeScreen(
-        onOpenProperty: openProperty,
-        onOpenWorks: () => select(1),
-      ),
+      AppSection.home => HomeScreen(onOpenWorks: () => select(1)),
       AppSection.works => WorksScreen(onOpenProperty: openProperty),
       AppSection.apartments => const ApartmentsScreen(),
       AppSection.buildings => const BuildingsScreen(),

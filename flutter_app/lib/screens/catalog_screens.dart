@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 
 import '../app.dart';
 import '../data/property_data.dart';
-import '../widgets/marketing_choice.dart';
 import 'contact_screen.dart';
 import 'property_details_screen.dart';
 import 'works_screen.dart';
@@ -91,7 +90,6 @@ class _CatalogPage extends StatelessWidget {
                 ?.copyWith(color: AppColors.navy),
           ),
           const SizedBox(height: 16),
-          const MarketingChoice(),
           AppCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,

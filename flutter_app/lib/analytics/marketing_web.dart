@@ -3,9 +3,6 @@ import 'dart:js_interop';
 @JS('safwatMarketing')
 external JSObject? get _bridge;
 
-@JS('safwatMarketing.hasPreference')
-external JSBoolean _hasPreference();
-
 @JS('safwatMarketing.allowed')
 external JSBoolean _allowed();
 
@@ -19,7 +16,6 @@ external void _page(JSString path);
 external void _contact(JSString channel);
 
 bool get available => _bridge != null;
-bool get hasPreference => available && _hasPreference().toDart;
 bool get allowed => available && _allowed().toDart;
 void setAllowed(bool value) {
   if (available) _setAllowed(value.toJS);
