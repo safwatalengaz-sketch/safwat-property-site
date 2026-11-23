@@ -111,6 +111,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byTooltip('مشاركة'), findsNothing);
+    expect(tester.getSize(find.byType(PropertyDetailsScreen)).width, 390);
     final whatsapp = find.byTooltip('تواصل عبر واتساب');
     final phone = find.byTooltip('اتصل بنا');
     final whatsappCenter = tester.getCenter(whatsapp);
