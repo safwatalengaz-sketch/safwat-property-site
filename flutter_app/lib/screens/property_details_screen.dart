@@ -6,12 +6,14 @@ import 'package:video_player/video_player.dart';
 
 import '../app.dart';
 import '../data/property_data.dart';
+import '../data/salam_offer.dart';
 import '../widgets/common.dart';
 import '../widgets/marketing_choice.dart';
 import 'contact_screen.dart';
 
 class PropertyDetailsScreen extends StatefulWidget {
-  const PropertyDetailsScreen({super.key});
+  const PropertyDetailsScreen({super.key, this.isSalamOffer = false});
+  final bool isSalamOffer;
   @override
   State<PropertyDetailsScreen> createState() => _PropertyDetailsScreenState();
 }
@@ -19,6 +21,8 @@ class PropertyDetailsScreen extends StatefulWidget {
 class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   late final PageController _pageController;
   int _index = 0;
+  List<String> get _photos =>
+      widget.isSalamOffer ? SalamOffer.photos : PropertyData.photos;
 
   @override
   void initState() {
@@ -44,23 +48,27 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           icon: const Icon(Icons.arrow_forward_rounded),
           onPressed: () => context.go('/works'),
         ),
-        actions: [
-          IconButton(
-            tooltip: 'مشاركة',
-            onPressed: () async {
-              await Clipboard.setData(
-                ClipboardData(text: PropertyData.propertyMap),
-              );
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('تم نسخ رابط موقع العقار')),
-                );
-              }
-            },
-            icon: const Icon(Icons.share_outlined),
-          ),
-          const SizedBox(width: 6),
-        ],
+        actions: widget.isSalamOffer
+            ? null
+            : [
+                IconButton(
+                  tooltip: 'مشاركة',
+                  onPressed: () async {
+                    await Clipboard.setData(
+                      ClipboardData(text: PropertyData.propertyMap),
+                    );
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('تم نسخ رابط موقع العقار'),
+                        ),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.share_outlined),
+                ),
+                const SizedBox(width: 6),
+              ],
       ),
       body: Center(
         child: ConstrainedBox(
@@ -71,30 +79,47 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
               const MarketingChoice(),
               _galleryCard(),
               const SizedBox(height: 18),
-              const Eyebrow(PropertyData.location),
+              Eyebrow(
+                widget.isSalamOffer
+                    ? SalamOffer.district
+                    : PropertyData.location,
+              ),
+              if (widget.isSalamOffer)
+                const Text('رقم العرض ${SalamOffer.reference}'),
               const SizedBox(height: 4),
               Text(
-                PropertyData.title,
+                widget.isSalamOffer ? SalamOffer.title : PropertyData.title,
                 style: Theme.of(context).textTheme.titleLarge
                     ?.copyWith(color: AppColors.navy, fontSize: 22),
               ),
               const SizedBox(height: 12),
-              const Wrap(
+              Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: [
-                  _DetailPill(Icons.square_foot_rounded, '١٨٥ م²'),
-                  _DetailPill(Icons.bed_outlined, '٣ غرف نوم'),
-                  _DetailPill(Icons.door_front_door_outlined, 'مدخلان'),
-                ],
+                children: widget.isSalamOffer
+                    ? const [
+                        _DetailPill(Icons.square_foot_rounded, SalamOffer.area),
+                        _DetailPill(
+                          Icons.apartment_outlined,
+                          '٣ شقق، كل شقة دور كامل',
+                        ),
+                        _DetailPill(Icons.elevator_outlined, 'مصعد'),
+                      ]
+                    : const [
+                        _DetailPill(Icons.square_foot_rounded, '١٨٥ م²'),
+                        _DetailPill(Icons.bed_outlined, '٣ غرف نوم'),
+                        _DetailPill(Icons.door_front_door_outlined, 'مدخلان'),
+                      ],
               ),
               const SizedBox(height: 22),
-              const SectionTitle('وصف الشقة'),
+              SectionTitle(widget.isSalamOffer ? 'وصف العرض' : 'وصف الشقة'),
               const SizedBox(height: 10),
-              const AppCard(
+              AppCard(
                 child: Text(
-                  PropertyData.descriptionIntro,
-                  style: TextStyle(
+                  widget.isSalamOffer
+                      ? SalamOffer.description
+                      : PropertyData.descriptionIntro,
+                  style: const TextStyle(
                     color: AppColors.ink,
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
@@ -105,68 +130,103 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
               const SizedBox(height: 20),
               const SectionTitle('المساحات والتفاصيل'),
               const SizedBox(height: 10),
-              _featuresCard(),
-              const SizedBox(height: 10),
-              const AppCard(
-                child: Text(
-                  PropertyData.descriptionClose,
-                  style: TextStyle(
-                    color: AppColors.navy,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    height: 1.8,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 22),
-              const SectionTitle('شاهد العقار بالفيديو'),
-              const SizedBox(height: 10),
-              const PropertyVideo(),
-              const SizedBox(height: 22),
-              const SectionTitle('موقع العقار'),
-              const SizedBox(height: 10),
-              AppCard(
-                onTap: () => _openMap(context),
-                child: const Row(
-                  children: [
-                    Icon(
-                      Icons.location_on_outlined,
-                      size: 24,
-                      color: AppColors.gold,
-                    ),
-                    SizedBox(width: 10),
-                    Expanded(
+              if (widget.isSalamOffer) ...[
+                for (final (floor, description, reserved) in SalamOffer.floors)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: AppCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            PropertyData.location,
-                            style: TextStyle(fontWeight: FontWeight.w700),
+                          Wrap(
+                            spacing: 10,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              Text(
+                                floor,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              if (reserved) const Eyebrow('محجوز'),
+                            ],
                           ),
-                          SizedBox(height: 2),
-                          Text(
-                            '24.4940739, 39.6993904',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: AppColors.muted,
-                            ),
-                          ),
+                          const SizedBox(height: 4),
+                          Text(description),
                         ],
                       ),
                     ),
-                    Icon(
-                      Icons.open_in_new_rounded,
-                      size: 18,
-                      color: AppColors.gold,
+                  ),
+              ] else ...[
+                _featuresCard(),
+                const SizedBox(height: 10),
+                const AppCard(
+                  child: Text(
+                    PropertyData.descriptionClose,
+                    style: TextStyle(
+                      color: AppColors.navy,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      height: 1.8,
                     ),
-                  ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'ترخيص الإعلان العقاري: ${PropertyData.license}',
-                style: TextStyle(color: AppColors.muted, fontSize: 12),
-              ),
+              ],
+              const SizedBox(height: 22),
+              const SectionTitle('شاهد العقار بالفيديو'),
+              const SizedBox(height: 10),
+              if (widget.isSalamOffer)
+                const PropertyVideo(
+                  clips: SalamOffer.clips,
+                  poster: 'assets/images/mb-246/02-living-stairs.jpg',
+                )
+              else
+                const PropertyVideo(),
+              if (!widget.isSalamOffer) ...[
+                const SizedBox(height: 22),
+                const SectionTitle('موقع العقار'),
+                const SizedBox(height: 10),
+                AppCard(
+                  onTap: () => _openMap(context),
+                  child: const Row(
+                    children: [
+                      Icon(
+                        Icons.location_on_outlined,
+                        size: 24,
+                        color: AppColors.gold,
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              PropertyData.location,
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              '24.4940739, 39.6993904',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.muted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.open_in_new_rounded,
+                        size: 18,
+                        color: AppColors.gold,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'ترخيص الإعلان العقاري: ${PropertyData.license}',
+                  style: TextStyle(color: AppColors.muted, fontSize: 12),
+                ),
+              ],
               const SizedBox(height: 18),
               Row(
                 children: [
@@ -182,7 +242,12 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                     child: AppActionButton(
                       label: 'احجز موعد المعاينة',
                       icon: Icons.chat_bubble_outline_rounded,
-                      onPressed: () => ContactScreen.whatsapp(context),
+                      onPressed: () => ContactScreen.whatsapp(
+                        context,
+                        message: widget.isSalamOffer
+                            ? 'السلام عليكم، أود الاستفسار عن العرض ${SalamOffer.reference}.'
+                            : null,
+                      ),
                       gold: true,
                     ),
                   ),
@@ -214,21 +279,19 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                 children: [
                   PageView.builder(
                     controller: _pageController,
-                    itemCount: PropertyData.photos.length,
+                    itemCount: _photos.length,
                     onPageChanged: (i) => setState(() => _index = i),
                     itemBuilder: (context, i) => GestureDetector(
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => PhotoViewer(startIndex: i),
+                          builder: (_) =>
+                              PhotoViewer(startIndex: i, photos: _photos),
                         ),
                       ),
                       child: ColoredBox(
                         color: Colors.white,
-                        child: Image.asset(
-                          PropertyData.photos[i],
-                          fit: BoxFit.contain,
-                        ),
+                        child: Image.asset(_photos[i], fit: BoxFit.contain),
                       ),
                     ),
                   ),
@@ -246,7 +309,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                           vertical: 5,
                         ),
                         child: Text(
-                          '${_arabic(_index + 1)} / ${_arabic(PropertyData.photos.length)}',
+                          '${_arabic(_index + 1)} / ${_arabic(_photos.length)}',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,
@@ -264,7 +327,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-              itemCount: PropertyData.photos.length,
+              itemCount: _photos.length,
               separatorBuilder: (context, index) => const SizedBox(width: 8),
               itemBuilder: (context, i) => GestureDetector(
                 onTap: () => _pageController.animateToPage(
@@ -284,10 +347,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(9),
-                    child: Image.asset(
-                      PropertyData.photos[i],
-                      fit: BoxFit.cover,
-                    ),
+                    child: Image.asset(_photos[i], fit: BoxFit.cover),
                   ),
                 ),
               ),
@@ -375,8 +435,13 @@ class _DetailPill extends StatelessWidget {
 }
 
 class PhotoViewer extends StatefulWidget {
-  const PhotoViewer({super.key, required this.startIndex});
+  const PhotoViewer({
+    super.key,
+    required this.startIndex,
+    required this.photos,
+  });
   final int startIndex;
+  final List<String> photos;
   @override
   State<PhotoViewer> createState() => _PhotoViewerState();
 }
@@ -404,7 +469,7 @@ class _PhotoViewerState extends State<PhotoViewer> {
       backgroundColor: const Color(0xFF0B1118),
       foregroundColor: Colors.white,
       title: Text(
-        '${_index + 1} / ${PropertyData.photos.length}',
+        '${_index + 1} / ${widget.photos.length}',
         style: const TextStyle(fontSize: 14),
       ),
       leading: IconButton(
@@ -414,13 +479,13 @@ class _PhotoViewerState extends State<PhotoViewer> {
     ),
     body: PageView.builder(
       controller: _controller,
-      itemCount: PropertyData.photos.length,
+      itemCount: widget.photos.length,
       onPageChanged: (i) => setState(() => _index = i),
       itemBuilder: (_, i) => InteractiveViewer(
         minScale: 1,
         maxScale: 4,
         child: Center(
-          child: Image.asset(PropertyData.photos[i], fit: BoxFit.contain),
+          child: Image.asset(widget.photos[i], fit: BoxFit.contain),
         ),
       ),
     ),
@@ -428,17 +493,24 @@ class _PhotoViewerState extends State<PhotoViewer> {
 }
 
 class PropertyVideo extends StatefulWidget {
-  const PropertyVideo({super.key});
+  const PropertyVideo({
+    super.key,
+    this.clips = _defaultClips,
+    this.poster = 'assets/images/property/05-room-wide.jpg',
+  });
+  static const _defaultClips = <(String, String)>[
+    ('جولة العقار ١', 'assets/videos/property-tour.mp4'),
+    ('جولة العقار ٢', 'assets/videos/property-tour-2.mp4'),
+    ('جولة العقار ٣', 'assets/videos/property-tour-3.mp4'),
+  ];
+  final List<(String, String)> clips;
+  final String poster;
+
   @override
   State<PropertyVideo> createState() => _PropertyVideoState();
 }
 
 class _PropertyVideoState extends State<PropertyVideo> {
-  static const _clips = <(String, String)>[
-    ('جولة العقار ١', 'assets/videos/property-tour.mp4'),
-    ('جولة العقار ٢', 'assets/videos/property-tour-2.mp4'),
-    ('جولة العقار ٣', 'assets/videos/property-tour-3.mp4'),
-  ];
   int _selected = 0;
   VideoPlayerController? _controller;
   bool _loading = false;
@@ -459,7 +531,7 @@ class _PropertyVideoState extends State<PropertyVideo> {
       return;
     }
     setState(() => _loading = true);
-    final controller = VideoPlayerController.asset(_clips[_selected].$2);
+    final controller = VideoPlayerController.asset(widget.clips[_selected].$2);
     _controller = controller;
     try {
       await controller.initialize();
@@ -483,22 +555,23 @@ class _PropertyVideoState extends State<PropertyVideo> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              for (var i = 0; i < _clips.length; i++) ...[
-                if (i > 0) const SizedBox(width: 8),
-                ChoiceChip(
-                  label: Text(_clips[i].$1),
-                  selected: _selected == i,
-                  selectedColor: AppColors.gold.withValues(alpha: .24),
-                  onSelected: (_) => _select(i),
-                ),
+        if (widget.clips.length > 1)
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (var i = 0; i < widget.clips.length; i++) ...[
+                  if (i > 0) const SizedBox(width: 8),
+                  ChoiceChip(
+                    label: Text(widget.clips[i].$1),
+                    selected: _selected == i,
+                    selectedColor: AppColors.gold.withValues(alpha: .24),
+                    onSelected: (_) => _select(i),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
-        ),
         const SizedBox(height: 8),
         ClipRRect(
           borderRadius: BorderRadius.circular(17),
@@ -544,12 +617,13 @@ class _PropertyVideoState extends State<PropertyVideo> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Image.asset(PropertyData.photos[4], fit: BoxFit.contain),
+            Image.asset(widget.poster, fit: BoxFit.contain),
             const ColoredBox(color: Colors.black26),
             Center(
               child: _loading
                   ? const CircularProgressIndicator(color: AppColors.gold)
                   : IconButton.filled(
+                      tooltip: 'تشغيل الفيديو',
                       onPressed: _start,
                       style: IconButton.styleFrom(
                         backgroundColor: AppColors.gold,
@@ -563,7 +637,7 @@ class _PropertyVideoState extends State<PropertyVideo> {
               bottom: 14,
               right: 16,
               child: Text(
-                _clips[_selected].$1,
+                widget.clips[_selected].$1,
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w700,

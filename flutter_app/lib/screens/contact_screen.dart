@@ -15,8 +15,14 @@ class ContactScreen extends StatelessWidget {
 
   static Future<void> call(BuildContext context) async =>
       _launch(context, Uri(scheme: 'tel', path: PropertyData.phone));
-  static Future<void> whatsapp(BuildContext context) async =>
-      _launch(context, Uri.parse(PropertyData.whatsapp));
+  static Future<void> whatsapp(BuildContext context, {String? message}) async {
+    final uri = Uri.parse(PropertyData.whatsapp);
+    return _launch(
+      context,
+      message == null ? uri : uri.replace(queryParameters: {'text': message}),
+    );
+  }
+
   static Future<void> _launch(BuildContext context, Uri uri) async {
     if (uri.scheme == 'tel') Marketing.contact('phone');
     if (uri.host == 'wa.me') Marketing.contact('whatsapp');

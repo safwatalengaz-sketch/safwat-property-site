@@ -6,6 +6,7 @@ import '../data/property_data.dart';
 import '../widgets/marketing_choice.dart';
 import 'contact_screen.dart';
 import 'property_details_screen.dart';
+import 'works_screen.dart';
 
 class ApartmentsScreen extends StatelessWidget {
   const ApartmentsScreen({super.key});
@@ -13,6 +14,7 @@ class ApartmentsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => _CatalogPage(
     title: 'الشقق المعروضة للبيع',
+    extraListing: const SalamOfferCard(),
     children: [
       Image.asset(PropertyData.photos[4], fit: BoxFit.cover, height: 240),
       const SizedBox(height: 16),
@@ -67,9 +69,14 @@ class ToursScreen extends StatelessWidget {
 }
 
 class _CatalogPage extends StatelessWidget {
-  const _CatalogPage({required this.title, required this.children});
+  const _CatalogPage({
+    required this.title,
+    required this.children,
+    this.extraListing,
+  });
   final String title;
   final List<Widget> children;
+  final Widget? extraListing;
 
   @override
   Widget build(BuildContext context) => Center(
@@ -91,6 +98,10 @@ class _CatalogPage extends StatelessWidget {
               children: children,
             ),
           ),
+          if (extraListing case final listing?) ...[
+            const SizedBox(height: 18),
+            listing,
+          ],
         ],
       ),
     ),

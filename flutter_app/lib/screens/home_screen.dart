@@ -4,6 +4,7 @@ import '../app.dart';
 import '../data/property_data.dart';
 import '../widgets/marketing_choice.dart';
 import 'contact_screen.dart';
+import 'works_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({
@@ -135,6 +136,8 @@ class HomeScreen extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(height: 16),
+              const SalamOfferCard(),
             ],
           ),
         ),

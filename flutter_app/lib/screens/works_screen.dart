@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../app.dart';
 import '../data/property_data.dart';
+import '../data/salam_offer.dart';
 import '../widgets/marketing_choice.dart';
 
 class WorksScreen extends StatelessWidget {
@@ -48,73 +49,18 @@ class WorksScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             const MarketingChoice(),
-            AppCard(
-              padding: EdgeInsets.zero,
-              onTap: onOpenProperty,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(18),
-                    ),
-                    child: AspectRatio(
-                      aspectRatio: 2,
-                      child: Image.asset(
-                        'assets/images/banners/works-banner.png',
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const LocationLine(text: PropertyData.location),
-                        const SizedBox(height: 7),
-                        const Text(
-                          PropertyData.title,
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.ink,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            _Chip('١٨٥ م²'),
-                            _Chip('٣ غرف نوم'),
-                            _Chip('تشطيب سوبر لوكس'),
-                          ],
-                        ),
-                        const SizedBox(height: 13),
-                        Row(
-                          children: [
-                            const Text(
-                              'عرض الصور والتفاصيل',
-                              style: TextStyle(
-                                color: AppColors.gold,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 13,
-                              ),
-                            ),
-                            const Spacer(),
-                            const Icon(
-                              Icons.chevron_left_rounded,
-                              color: AppColors.gold,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+            _ListingCard(
+              cover: Image.asset(
+                'assets/images/banners/works-banner.png',
+                fit: BoxFit.contain,
               ),
+              title: PropertyData.title,
+              subtitle: const LocationLine(text: PropertyData.location),
+              facts: const ['١٨٥ م²', '٣ غرف نوم', 'تشطيب سوبر لوكس'],
+              onTap: onOpenProperty,
             ),
+            const SizedBox(height: 18),
+            const SalamOfferCard(),
             const SizedBox(height: 18),
             const AppCard(
               child: Text(
@@ -125,6 +71,92 @@ class WorksScreen extends StatelessWidget {
           ],
         ),
       ),
+    ),
+  );
+}
+
+class SalamOfferCard extends StatelessWidget {
+  const SalamOfferCard({super.key});
+
+  @override
+  Widget build(BuildContext context) => _ListingCard(
+    cover: Image.asset(SalamOffer.cover, fit: BoxFit.contain),
+    title: SalamOffer.title,
+    subtitle: const Eyebrow(
+      'عرض ${SalamOffer.reference} · ${SalamOffer.district}',
+    ),
+    facts: const [SalamOffer.area, 'كل شقة دور كامل', 'مصعد'],
+    onTap: () => context.go(SalamOffer.path),
+  );
+}
+
+class _ListingCard extends StatelessWidget {
+  const _ListingCard({
+    required this.cover,
+    required this.title,
+    required this.subtitle,
+    required this.facts,
+    required this.onTap,
+  });
+
+  final Widget cover;
+  final String title;
+  final Widget subtitle;
+  final List<String> facts;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => AppCard(
+    padding: EdgeInsets.zero,
+    onTap: onTap,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+          child: AspectRatio(aspectRatio: 2, child: cover),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              subtitle,
+              const SizedBox(height: 7),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.ink,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [for (final fact in facts) _Chip(fact)],
+              ),
+              const SizedBox(height: 13),
+              const Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'عرض الصور والتفاصيل',
+                      style: TextStyle(
+                        color: AppColors.gold,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                  Icon(Icons.chevron_left_rounded, color: AppColors.gold),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
     ),
   );
 }
