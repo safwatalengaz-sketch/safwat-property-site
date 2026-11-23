@@ -32,7 +32,7 @@ jobs:
           flutter pub get --enforce-lockfile
           flutter analyze
           flutter test
-          flutter build web --release --base-href /safwat-property-site/
+          flutter build web --release --pwa-strategy=none --base-href /safwat-property-site/
       - name: Keep direct links to Flutter screens
         run: python3 scripts/prepare_flutter_pages.py
       - name: Configure GitHub Pages

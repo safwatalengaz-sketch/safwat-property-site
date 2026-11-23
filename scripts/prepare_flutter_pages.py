@@ -19,9 +19,25 @@ ROUTES = {
 
 output = Path("flutter_app/build/web")
 shell = (output / "index.html").read_text(encoding="utf-8")
-for script in ("marketing-config.js", "marketing.js"):
+bootstrap = output / "flutter_bootstrap.js"
+main = output / "main.dart.js"
+versioned_main = f"main.{sha256(main.read_bytes()).hexdigest()[:12]}.dart.js"
+bootstrap.write_text(
+    bootstrap.read_text(encoding="utf-8").replace('"main.dart.js"', f'"{versioned_main}"'),
+    encoding="utf-8",
+)
+# Keep the standard file available while older bootstraps are still cached.
+(output / versioned_main).write_bytes(main.read_bytes())
+for script in ("marketing-config.js", "marketing.js", "flutter_bootstrap.js"):
     version = sha256((output / script).read_bytes()).hexdigest()[:12]
     shell = shell.replace(f'src="{script}"', f'src="{script}?v={version}"')
+
+# Existing installations still update their old worker from this URL.
+(output / "flutter_service_worker.js").write_text(
+    'self.addEventListener("install", event => event.waitUntil(self.skipWaiting()));\n'
+    'self.addEventListener("activate", event => event.waitUntil(self.registration.unregister()));\n',
+    encoding="utf-8",
+)
 
 for route, (title, description) in ROUTES.items():
     folder = output / route
