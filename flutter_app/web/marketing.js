@@ -91,17 +91,16 @@
     return { page_location: url.origin + url.pathname, page_referrer: '' };
   }
 
-  function sendGoogleRouteView(path, retries = 8) {
-    if (path !== currentPage || !googleLimited()) return;
-    const context = googlePageContext();
-    // Flutter's measured callback may precede its browser history update.
-    // The Ads SDK can read the real URL even when page_location is supplied.
+  function whenRouteMatches(path, canSend, send, retries = 8) {
+    if (path !== currentPage || !canSend()) return;
+    // Flutter can report the new route before updating browser history.
+    // Pixel SDKs read the real URL when building the event.
     const normalize = (pathname) => pathname.replace(/\/$/, '');
-    if (normalize(new URL(context.page_location).pathname) !== normalize(new URL(location.href).pathname)) {
-      if (retries) window.setTimeout(() => sendGoogleRouteView(path, retries - 1), 25);
+    if (normalize(new URL(googlePageContext().page_location).pathname) !== normalize(new URL(location.href).pathname)) {
+      if (retries) window.setTimeout(() => whenRouteMatches(path, canSend, send, retries - 1), 25);
       return;
     }
-    dispatch('Google Ads', () => window.gtag('event', 'page_view', { ...context, send_to: config.googleAdsTagId }));
+    send();
   }
 
   function initializeGoogle(tagId, fullMeasurement = true) {
@@ -169,13 +168,17 @@
     if (!entranceOpened || !currentPage || lastSentPage === currentPage) return;
     if (allowed()) {
       initialize();
-      if (config.snapPixelId) dispatch('Snapchat', () => window.snaptr('track', 'PAGE_VIEW'));
+      if (config.snapPixelId) whenRouteMatches(currentPage, allowed, () => {
+        dispatch('Snapchat', () => window.snaptr('track', 'PAGE_VIEW'));
+      });
     } else if (config.googleAdsTagId && lastLimitedPage !== currentPage && googleLimited()) {
       dispatch('Google Ads', () => {
         // Ads emits the initial observation on config, even with send_page_view
         // disabled. Only send explicit page views for later Flutter routes.
         if (!googleInitialized) initializeGoogle(config.googleAdsTagId, false);
-        else sendGoogleRouteView(currentPage);
+        else whenRouteMatches(currentPage, googleLimited, () => {
+          window.gtag('event', 'page_view', { ...googlePageContext(), send_to: config.googleAdsTagId });
+        });
       });
       lastLimitedPage = currentPage;
       return;

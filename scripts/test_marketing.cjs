@@ -123,7 +123,7 @@ test('a new visitor queues one limited Google view per route and one conversion 
 test('granting loads the three tags without replaying earlier clicks', () => {
   const { browser, scripts, marketing } = site(null, {}, '?ScCid=example');
   marketing.dismissWelcome();
-  marketing.page('/properties');
+  marketing.page('/properties/mb-246');
   marketing.contact('whatsapp');
   marketing.setAllowed(true);
   marketing.contact('phone');
@@ -139,14 +139,29 @@ test('stored approval preloads SDKs and repeated route callbacks do not add view
   const { browser, scripts, preloads, marketing } = site('allow');
   assert.equal(scripts.length, 1);
   assert.equal(preloads.length, 2);
-  marketing.page('/properties');
-  marketing.page('/properties');
+  marketing.page('/properties/mb-246');
+  marketing.page('/properties/mb-246');
   marketing.contact('whatsapp');
   marketing.contact('whatsapp');
   assert.equal(browser.snaptr.queue.filter(e => e[1] === 'PAGE_VIEW').length, 1);
   assert.equal(browser.ttq.filter(e => e[0] === 'page').length, 1);
   assert.equal(browser.ttq.filter(e => e[1] === 'WhatsAppClick').length, 2);
   assert.equal(scripts.length, 3);
+});
+
+test('Snap waits until browser history has actually moved to the new route', () => {
+  const { browser, marketing } = site('allow');
+  marketing.page('/properties/mb-246');
+  const pending = [];
+  browser.setTimeout = (fn) => pending.push(fn);
+  marketing.page('/works');
+  marketing.page('/works');
+  const views = () => browser.snaptr.queue.filter(e => e[1] === 'PAGE_VIEW').length;
+  assert.equal(views(), 1);
+  assert.equal(pending.length, 1);
+  browser.location.href = 'https://example.test/works/';
+  pending.shift()();
+  assert.equal(views(), 2);
 });
 
 test('a stored grant cannot override a browser privacy signal', () => {
