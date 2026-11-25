@@ -198,19 +198,28 @@ class ContactScreen extends StatelessWidget {
               'ترخيص الإعلان العقاري: ${PropertyData.license}',
               style: TextStyle(color: AppColors.muted, fontSize: 12),
             ),
-            if (Marketing.available)
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: TextButton(
-                  onPressed: () => _showPrivacy(context),
-                  child: const Text('إعدادات الخصوصية'),
-                ),
-              ),
+            const PrivacySettingsButton(),
           ],
         ),
       ),
     ),
   );
+}
+
+class PrivacySettingsButton extends StatelessWidget {
+  const PrivacySettingsButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    if (!Marketing.available) return const SizedBox.shrink();
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: TextButton(
+        onPressed: () => _showPrivacy(context),
+        child: const Text('إعدادات الخصوصية'),
+      ),
+    );
+  }
 
   static Future<void> _showPrivacy(BuildContext context) async {
     final allowed = await showDialog<bool>(
@@ -218,9 +227,11 @@ class ContactScreen extends StatelessWidget {
       builder: (context) => AlertDialog(
         title: const Text('إعدادات الخصوصية'),
         content: Text(
-          'قياس زيارات الصفحات ونقرات الاتصال وواتساب عبر منصات الإعلان المفعّلة '
-          '(سناب شات، جوجل وتيك توك). قد تستخدم هذه المنصات ملفات تعريف الارتباط. '
-          'الحالة الحالية: ${Marketing.allowed ? 'مفعّل' : 'متوقف'}.',
+          'يمكنك الاتصال أو فتح واتساب مباشرة. قبل اختيارك، عند الضغط على أحد الزرّين '
+          'قد نرسل إلى جوجل إشارة قياس محدودة دون ملفات ارتباط إعلانية. '
+          'إذا سمحت بالقياس، نرسل زيارات الصفحات ونقرات التواصل إلى جوجل وسناب شات وتيك توك. '
+          'قد تستخدم هذه المنصات ملفات ارتباط. اختيار رفض القياس يوقف إرسال نقراتك اللاحقة. '
+          'القياس الإعلاني الكامل ${Marketing.allowed ? 'مفعّل' : 'متوقف'}.',
         ),
         actions: [
           TextButton(
