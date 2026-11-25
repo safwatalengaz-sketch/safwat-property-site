@@ -149,8 +149,12 @@
     queue._i = { [pixelId]: Object.assign([], { _u: tiktokEndpoint }) };
     queue._t = { [pixelId]: Date.now() };
     queue._o = { [pixelId]: {} };
-    loadScript(tiktokScript);
     queue.page();
+    // Keep the command queue available immediately while Flutter settles the
+    // initial browser URL, before the TikTok SDK attaches its history listener.
+    window.setTimeout(() => {
+      if (allowed()) loadScript(tiktokScript);
+    }, 150);
   }
 
   function initialize() {
