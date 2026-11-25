@@ -292,7 +292,6 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   ),
                 ],
               ),
-              const PrivacySettingsButton(),
               if (widget.isSalamOffer) ...[
                 const SizedBox(height: 16),
                 const Text(

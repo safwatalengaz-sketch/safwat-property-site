@@ -198,7 +198,7 @@ class ContactScreen extends StatelessWidget {
               'ترخيص الإعلان العقاري: ${PropertyData.license}',
               style: TextStyle(color: AppColors.muted, fontSize: 12),
             ),
-            const PrivacySettingsButton(),
+            const _StopMeasurementButton(),
           ],
         ),
       ),
@@ -206,46 +206,19 @@ class ContactScreen extends StatelessWidget {
   );
 }
 
-class PrivacySettingsButton extends StatelessWidget {
-  const PrivacySettingsButton({super.key});
+class _StopMeasurementButton extends StatelessWidget {
+  const _StopMeasurementButton();
 
   @override
   Widget build(BuildContext context) {
-    if (!Marketing.available) return const SizedBox.shrink();
+    if (!Marketing.allowed) return const SizedBox.shrink();
     return Align(
       alignment: AlignmentDirectional.centerStart,
       child: TextButton(
-        onPressed: () => _showPrivacy(context),
-        child: const Text('إعدادات الخصوصية'),
+        onPressed: () => Marketing.setAllowed(false),
+        child: const Text('إيقاف القياس الإعلاني'),
       ),
     );
-  }
-
-  static Future<void> _showPrivacy(BuildContext context) async {
-    final allowed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('إعدادات الخصوصية'),
-        content: Text(
-          'يمكنك الاتصال أو فتح واتساب مباشرة. قبل اختيارك، عند الضغط على أحد الزرّين '
-          'قد نرسل إلى جوجل إشارة قياس محدودة دون ملفات ارتباط إعلانية. '
-          'إذا سمحت بالقياس، نرسل زيارات الصفحات ونقرات التواصل إلى جوجل وسناب شات وتيك توك. '
-          'قد تستخدم هذه المنصات ملفات ارتباط. اختيار رفض القياس يوقف إرسال نقراتك اللاحقة. '
-          'القياس الإعلاني الكامل ${Marketing.allowed ? 'مفعّل' : 'متوقف'}.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('رفض القياس'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('السماح بالقياس'),
-          ),
-        ],
-      ),
-    );
-    if (allowed != null) Marketing.setAllowed(allowed);
   }
 }
 

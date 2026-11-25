@@ -3,7 +3,11 @@
 
   const config = window.safwatMarketingConfig || {};
   const preferenceKey = 'safwat-snap-marketing-v1';
+  const denialKey = preferenceKey + '-session-denial';
   const landingUrl = location.href;
+  const snapScript = 'https://sc-static.net/scevent.min.js';
+  const tiktokEndpoint = 'https://analytics.tiktok.com/i18n/pixel/events.js';
+  const tiktokScript = tiktokEndpoint + '?sdkid=' + encodeURIComponent(config.tiktokPixelId) + '&lib=ttq';
   let preference;
   let currentPage;
   let lastSentPage;
@@ -15,33 +19,31 @@
   } catch {
     preference = 'deny';
   }
+  try {
+    if (sessionStorage.getItem(denialKey) === 'deny') preference = 'deny';
+  } catch {}
 
-  const allowed = () => preference === 'allow';
-  function canSendLimitedClick() {
-    if (preference != null || navigator.globalPrivacyControl || navigator.doNotTrack === '1') return false;
-    // Google's redaction covers its own click ID. Other identifiers in a URL
-    // can still be sent by the tag even if page_location is set explicitly.
-    for (const address of [landingUrl, location.href, document.referrer]) {
-      if (!address) continue;
-      const url = new URL(address);
-      for (const [key, value] of url.searchParams) {
-        if (key === 'gclid') continue;
-        if (key === 'gad_source' && /^\d{1,2}$/.test(value)) continue;
-        if (key === 'gad_campaignid' && /^\d{1,20}$/.test(value)) continue;
-        if (key === 'utm_source' && value === 'google') continue;
-        if (key === 'utm_medium' && ['cpc', 'ppc', 'paid_search'].includes(value)) continue;
-        return false;
-      }
-      if (url.hash) return false;
-    }
-    return true;
-  }
-
-  function loadScript(src) {
+  const allowed = () => preference === 'allow' && !window.navigator?.globalPrivacyControl;
+  function loadScript(src, retry = true) {
     const script = document.createElement('script');
     script.async = true;
     script.src = src;
+    if (retry) script.onerror = () => {
+      script.remove();
+      // Keep SDK commands already queued. Retry the script, never the events.
+      window.setTimeout(() => {
+        if (allowed()) loadScript(src, false);
+      }, 1000);
+    };
     document.head.append(script);
+  }
+
+  function preloadScript(src) {
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'script';
+    link.href = src;
+    document.head.append(link);
   }
 
   function dispatch(platform, send) {
@@ -59,39 +61,29 @@
     };
     snaptr.queue = [];
     window.snaptr = snaptr;
-    loadScript('https://sc-static.net/scevent.min.js');
+    loadScript(snapScript);
     snaptr('init', pixelId);
   }
 
-  function initializeGoogle(tagId, fullMeasurement) {
-    if (!googleInitialized) {
-      window.dataLayer = window.dataLayer || [];
-      window.gtag = function () { window.dataLayer.push(arguments); };
-      window.gtag('consent', 'default', {
-        ad_storage: 'denied', ad_user_data: 'denied',
-        ad_personalization: 'denied', analytics_storage: 'denied',
-      });
-      window.gtag('set', 'ads_data_redaction', true);
-    }
-    if (fullMeasurement) {
-      window.gtag('consent', 'update', { ad_storage: 'granted', ad_user_data: 'granted' });
-    }
-    if (!googleInitialized) window.gtag('js', new Date());
-    window.gtag('config', tagId, fullMeasurement ? {
+  function initializeGoogle(tagId) {
+    if (googleInitialized) return;
+    googleInitialized = true;
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { window.dataLayer.push(arguments); };
+    window.gtag('consent', 'default', {
+      ad_storage: 'denied', ad_user_data: 'denied',
+      ad_personalization: 'denied', analytics_storage: 'denied',
+    });
+    window.gtag('consent', 'update', { ad_storage: 'granted', ad_user_data: 'granted' });
+    window.gtag('js', new Date());
+    window.gtag('config', tagId, {
       allow_ad_personalization_signals: false,
       page_location: landingUrl,
-    } : {
-      send_page_view: false, allow_ad_personalization_signals: false,
-      page_location: location.href.split(/[?#]/)[0], page_referrer: '',
     });
-    if (!googleInitialized) {
-      loadScript('https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(tagId));
-      googleInitialized = true;
-    }
+    loadScript('https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(tagId));
   }
 
   function initializeTikTok(pixelId) {
-    const endpoint = 'https://analytics.tiktok.com/i18n/pixel/events.js';
     window.TiktokAnalyticsObject = 'ttq';
     const queue = window.ttq = window.ttq || [];
     queue.methods = [
@@ -107,10 +99,10 @@
       for (const method of queue.methods) queue.setAndDefer(instance, method);
       return instance;
     };
-    queue._i = { [pixelId]: Object.assign([], { _u: endpoint }) };
+    queue._i = { [pixelId]: Object.assign([], { _u: tiktokEndpoint }) };
     queue._t = { [pixelId]: Date.now() };
     queue._o = { [pixelId]: {} };
-    loadScript(endpoint + '?sdkid=' + encodeURIComponent(pixelId) + '&lib=ttq');
+    loadScript(tiktokScript);
     queue.page();
   }
 
@@ -118,7 +110,7 @@
     if (initialized) return;
     initialized = true;
     if (config.snapPixelId) dispatch('Snapchat', () => initializeSnap(config.snapPixelId));
-    if (config.googleAdsTagId) dispatch('Google Ads', () => initializeGoogle(config.googleAdsTagId, true));
+    if (config.googleAdsTagId) dispatch('Google Ads', () => initializeGoogle(config.googleAdsTagId));
     if (config.tiktokPixelId) dispatch('TikTok', () => initializeTikTok(config.tiktokPixelId));
   }
 
@@ -131,7 +123,6 @@
 
   window.safwatMarketing = {
     allowed,
-    hasPreference: () => preference === 'allow' || preference === 'deny',
     setAllowed(value) {
       preference = value ? 'allow' : 'deny';
       let saved = false;
@@ -139,15 +130,24 @@
         localStorage.setItem(preferenceKey, preference);
         saved = true;
       } catch {
-        // The choice still applies to events in this document.
+        if (!value) {
+          try {
+            localStorage.removeItem(preferenceKey);
+            saved = true;
+          } catch {}
+        }
       }
+      try {
+        if (value) sessionStorage.removeItem(denialKey);
+        else if (!saved) {
+          sessionStorage.setItem(denialKey, 'deny');
+          saved = true;
+        }
+      } catch {}
       if (value) sendPage();
-      else if (initialized || googleInitialized) {
-        window.gtag?.('consent', 'update', {
-          ad_storage: 'denied',
-          ad_user_data: 'denied',
-        });
-        if (saved) location.reload();
+      else if ((initialized || googleInitialized) && saved) {
+        // Reload to unload the already-running SDKs and their automatic listeners.
+        location.reload();
       }
     },
     page(path) {
@@ -155,24 +155,40 @@
       sendPage();
     },
     contact(channel) {
-      if (channel !== 'phone' && channel !== 'whatsapp') return;
-      if (allowed()) {
-        initialize();
-        if (config.snapPixelId) dispatch('Snapchat', () => {
-          window.snaptr('track', channel === 'phone' ? 'CUSTOM_EVENT_1' : 'CUSTOM_EVENT_2');
-        });
-        if (config.tiktokPixelId) dispatch('TikTok', () => {
-          window.ttq.track('Contact');
-          window.ttq.track(channel === 'phone' ? 'PhoneClick' : 'WhatsAppClick');
-        });
-      } else if (!canSendLimitedClick()) return;
+      if (!allowed() || (channel !== 'phone' && channel !== 'whatsapp')) return;
+      initialize();
+      if (config.snapPixelId) dispatch('Snapchat', () => {
+        window.snaptr('track', channel === 'phone' ? 'CUSTOM_EVENT_1' : 'CUSTOM_EVENT_2');
+      });
+      if (config.tiktokPixelId) {
+        dispatch('TikTok', () => window.ttq.track('Contact'));
+        dispatch('TikTok', () => window.ttq.track(channel === 'phone' ? 'PhoneClick' : 'WhatsAppClick'));
+      }
       const label = channel === 'phone' ? config.googleAdsPhoneLabel : config.googleAdsWhatsAppLabel;
       if (config.googleAdsTagId && label) {
         dispatch('Google Ads', () => {
-          if (!googleInitialized) initializeGoogle(config.googleAdsTagId, false);
           window.gtag('event', 'conversion', { send_to: config.googleAdsTagId + '/' + label });
         });
       }
     },
   };
+
+  window.addEventListener('storage', (event) => {
+    if (event.storageArea !== localStorage ||
+        (event.key !== preferenceKey && event.key !== null)) return;
+    preference = event.newValue;
+    if (allowed()) {
+      initialize();
+      sendPage();
+    } else if (initialized || googleInitialized) {
+      location.reload();
+    }
+  });
+  if (allowed()) {
+    // Flutter normalizes deep-link URLs. Fetch the SDKs early but defer their
+    // automatic history listeners until the first measured Flutter route.
+    if (config.snapPixelId) preloadScript(snapScript);
+    if (config.tiktokPixelId) preloadScript(tiktokScript);
+    if (config.googleAdsTagId) dispatch('Google Ads', () => initializeGoogle(config.googleAdsTagId));
+  }
 })();

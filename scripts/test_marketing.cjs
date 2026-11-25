@@ -6,19 +6,30 @@ const vm = require('node:vm');
 
 function site(preference, privacySignals = {}, query = '?gclid=example', referrer = '') {
   const scripts = [];
+  const scriptElements = [];
+  const preloads = [];
+  const listeners = {};
   const browser = {
     URL,
     console: { warn() {} },
     document: {
       referrer,
-      createElement: () => ({}),
-      head: { append: (script) => scripts.push(script.src) },
+      createElement: () => ({ remove() {} }),
+      head: { append: (element) => {
+        if (element.rel === 'preload') preloads.push(element.href);
+        else {
+          scripts.push(element.src);
+          scriptElements.push(element);
+        }
+      } },
     },
     localStorage: {
       getItem: () => preference,
       setItem: (_, value) => { preference = value; },
     },
     navigator: privacySignals,
+    addEventListener: (name, callback) => { listeners[name] = callback; },
+    setTimeout: (callback) => callback(),
     location: { href: 'https://example.test/properties/mb-246/' + query, reload() {} },
   };
   browser.window = browser;
@@ -26,7 +37,7 @@ function site(preference, privacySignals = {}, query = '?gclid=example', referre
   for (const file of ['marketing-config.js', 'marketing.js']) {
     vm.runInContext(readFileSync(join(__dirname, '..', 'flutter_app', 'web', file), 'utf8'), context);
   }
-  return { browser, scripts, marketing: browser.safwatMarketing };
+  return { browser, scripts, scriptElements, preloads, listeners, marketing: browser.safwatMarketing };
 }
 
 test('consented calls and WhatsApp clicks reach all three configured destinations', () => {
@@ -51,60 +62,76 @@ test('consented calls and WhatsApp clicks reach all three configured destination
   ]);
 });
 
-test('both first-click labels are queued with storage denied and one Google tag', () => {
-  const { browser, scripts, marketing } = site(null, {}, '?utm_source=google&utm_medium=cpc&gad_source=1&gad_campaignid=123&gclid=example');
-  marketing.page('/properties');
-  assert.equal(scripts.length, 0);
-  marketing.contact('whatsapp');
-  marketing.contact('phone');
-  assert.equal(scripts.length, 1);
-  assert.equal(browser.snaptr, undefined);
-  assert.equal(browser.ttq, undefined);
-  const commands = Array.from(browser.dataLayer);
-  assert.deepEqual(Object.values(commands[0][2]), Array(4).fill('denied'));
-  assert.equal(commands.some(e => e[0] === 'consent' && e[1] === 'update'), false);
-  assert.equal(commands.find(e => e[0] === 'config')[2].page_location, 'https://example.test/properties/mb-246/');
-  assert.equal(commands.find(e => e[0] === 'set' && e[1] === 'ads_data_redaction')[2], true);
-  const config = browser.safwatMarketingConfig;
-  assert.deepEqual(commands.filter(e => e[1] === 'conversion').map(e => e[2].send_to), [
-    config.googleAdsTagId + '/' + config.googleAdsWhatsAppLabel,
-    config.googleAdsTagId + '/' + config.googleAdsPhoneLabel,
-  ]);
-  marketing.setAllowed(false);
-  const prior = browser.dataLayer.length;
-  marketing.contact('phone');
-  assert.equal(browser.dataLayer.length, prior);
-});
-
-test('a foreign identifier, unknown query or tagged referrer suppresses limited tracking', () => {
-  for (const [query, referrer] of [
-    ['?gclid=example&ScCid=private', ''], ['?ttclid=private', ''], ['?utm_source=private', ''],
-    ['', 'https://example.test/?ttclid=private'], ['#private', ''],
-  ]) {
-    const { marketing, scripts } = site(null, {}, query, referrer);
+for (const preference of [null, 'deny']) {
+  test(`nothing is sent without an explicit grant (preference: ${preference})`, () => {
+    const { browser, scripts, marketing } = site(preference);
+    marketing.page('/properties');
     marketing.contact('phone');
-    assert.equal(scripts.length, 0);
-  }
-});
-
-test('stored refusal and browser privacy signals suppress automatic pings', () => {
-  for (const [pref, signals] of [['deny', {}], [null, { globalPrivacyControl: true }], [null, { doNotTrack: '1' }]]) {
-    const { browser, scripts, marketing } = site(pref, signals);
     marketing.contact('whatsapp');
     assert.equal(scripts.length, 0);
+    assert.equal(browser.snaptr, undefined);
+    assert.equal(browser.ttq, undefined);
     assert.equal(browser.dataLayer, undefined);
-  }
-});
+  });
+}
 
-test('granting after a limited click starts the other pixels without replaying the click', () => {
+test('granting loads the three tags without replaying earlier clicks', () => {
   const { browser, scripts, marketing } = site();
   marketing.page('/properties');
   marketing.contact('whatsapp');
   marketing.setAllowed(true);
   marketing.contact('phone');
+  marketing.contact('phone');
   assert.equal(scripts.length, 3);
   assert.equal(browser.dataLayer.filter(e => e[1] === 'conversion').length, 2);
-  assert.deepEqual(Array.from(browser.ttq).filter(e => e[0] === 'track').map(e => e[1]), ['Contact','PhoneClick']);
+  assert.deepEqual(Array.from(browser.ttq).filter(e => e[0] === 'track').map(e => e[1]),
+    ['Contact', 'PhoneClick', 'Contact', 'PhoneClick']);
+  assert.equal(browser.snaptr.queue.filter(e => e[1] === 'PAGE_VIEW').length, 1);
+});
+
+test('stored approval preloads SDKs and repeated route callbacks do not add views', () => {
+  const { browser, scripts, preloads, marketing } = site('allow');
+  assert.equal(scripts.length, 1);
+  assert.equal(preloads.length, 2);
+  marketing.page('/properties');
+  marketing.page('/properties');
+  marketing.contact('whatsapp');
+  marketing.contact('whatsapp');
+  assert.equal(browser.snaptr.queue.filter(e => e[1] === 'PAGE_VIEW').length, 1);
+  assert.equal(browser.ttq.filter(e => e[0] === 'page').length, 1);
+  assert.equal(browser.ttq.filter(e => e[1] === 'WhatsAppClick').length, 2);
+  assert.equal(scripts.length, 3);
+});
+
+test('a stored grant cannot override a browser privacy signal', () => {
+  const { marketing, scripts } = site('allow', { globalPrivacyControl: true });
+  marketing.page('/properties');
+  marketing.contact('phone');
+  assert.equal(scripts.length, 0);
+});
+
+test('revoking in another tab blocks the next contact and unloads active SDKs', () => {
+  const { browser, listeners, marketing } = site('allow');
+  let reloads = 0;
+  browser.location.reload = () => { reloads += 1; };
+  listeners.storage({ storageArea: browser.localStorage, key: 'safwat-snap-marketing-v1', newValue: 'deny' });
+  marketing.contact('whatsapp');
+  assert.equal(reloads, 1);
+  assert.equal(marketing.allowed(), false);
+  assert.equal(browser.ttq, undefined);
+});
+
+test('revoking reloads to unload the SDKs and blocks further contact events', () => {
+  const { browser, marketing } = site('allow');
+  let reloaded = false;
+  browser.location.reload = () => { reloaded = true; };
+  marketing.page('/properties');
+  marketing.setAllowed(false);
+  marketing.contact('whatsapp');
+  assert.equal(reloaded, true);
+  assert.equal(marketing.allowed(), false);
+  assert.equal(browser.dataLayer.filter(e => e[1] === 'conversion').length, 0);
+  assert.equal(browser.ttq.filter(e => e[0] === 'track').length, 0);
 });
 
 test('one pixel failure does not block the other two destinations', () => {
@@ -115,4 +142,16 @@ test('one pixel failure does not block the other two destinations', () => {
   assert.doesNotThrow(() => marketing.contact('phone'));
   assert.equal(browser.ttq.at(-1)[1], 'PhoneClick');
   assert.equal(browser.dataLayer.at(-1)[1], 'conversion');
+});
+
+test('a script load failure retries once without adding another conversion', () => {
+  const { browser, scriptElements, marketing } = site('allow');
+  marketing.page('/properties');
+  marketing.contact('whatsapp');
+  const snap = scriptElements.find(element => element.src.includes('sc-static.net'));
+  snap.onerror();
+  const snapLoads = scriptElements.filter(element => element.src === snap.src);
+  assert.equal(snapLoads.length, 2);
+  assert.equal(snapLoads[1].onerror, undefined);
+  assert.equal(browser.snaptr.queue.filter(event => event[1] === 'CUSTOM_EVENT_2').length, 1);
 });
