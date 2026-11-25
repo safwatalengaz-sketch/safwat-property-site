@@ -7,9 +7,14 @@ import '../analytics/marketing.dart';
 import '../app.dart';
 
 class MeasurementWelcome extends StatelessWidget {
-  const MeasurementWelcome({super.key, required this.onClose});
+  const MeasurementWelcome({
+    super.key,
+    required this.canChooseMeasurement,
+    required this.onClose,
+  });
 
-  final VoidCallback onClose;
+  final bool canChooseMeasurement;
+  final ValueChanged<bool> onClose;
 
   @override
   Widget build(BuildContext context) {
@@ -59,11 +64,22 @@ class MeasurementWelcome extends StatelessWidget {
                               'لمشاهدة تفاصيل العقار، اضغط على الزر أدناه',
                               textAlign: TextAlign.center,
                             ),
+                            if (canChooseMeasurement) ...[
+                              const SizedBox(height: 6),
+                              const Text(
+                                'بالضغط على «افتح العقار»، توافق على قياس مشاهدات الصفحات ونقرات واتساب والهاتف عبر جوجل وسناب شات وتيك توك.',
+                                textAlign: TextAlign.center,
+                              ),
+                              TextButton(
+                                onPressed: () => onClose(false),
+                                child: const Text('متابعة دون قياس'),
+                              ),
+                            ],
                             const SizedBox(height: 16),
                             SizedBox(
                               width: double.infinity,
                               child: FilledButton(
-                                onPressed: onClose,
+                                onPressed: () => onClose(canChooseMeasurement),
                                 child: const Text('افتح العقار'),
                               ),
                             ),

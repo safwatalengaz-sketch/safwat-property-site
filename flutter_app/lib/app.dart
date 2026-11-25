@@ -30,7 +30,8 @@ class _SafwatAppState extends State<SafwatApp> {
   bool _showSplash = true;
   bool _dismissedWelcome = false;
 
-  void _closeWelcome() {
+  void _closeWelcome(bool allow) {
+    if (Marketing.privacyState == 'unset') Marketing.setAllowed(allow);
     Marketing.dismissWelcome();
     setState(() => _dismissedWelcome = true);
   }
@@ -167,7 +168,11 @@ class _SafwatAppState extends State<SafwatApp> {
             ),
             if (_showSplash)
               SplashGate(onReady: () => setState(() => _showSplash = false)),
-            if (showWelcome) MeasurementWelcome(onClose: _closeWelcome),
+            if (showWelcome)
+              MeasurementWelcome(
+                canChooseMeasurement: Marketing.privacyState == 'unset',
+                onClose: _closeWelcome,
+              ),
           ],
         ),
       ),

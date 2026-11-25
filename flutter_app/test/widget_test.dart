@@ -67,13 +67,18 @@ void main() {
     expect(find.textContaining('%'), findsOneWidget);
   });
 
-  testWidgets('entrance card shows the requested text and one button', (
+  testWidgets('entrance card discloses the choice before the primary button', (
     tester,
   ) async {
-    var opened = false;
+    final choices = <bool>[];
     await tester.pumpWidget(
       MaterialApp(
-        home: Scaffold(body: MeasurementWelcome(onClose: () => opened = true)),
+        home: Scaffold(
+          body: MeasurementWelcome(
+            canChooseMeasurement: true,
+            onClose: choices.add,
+          ),
+        ),
       ),
     );
     expect(
@@ -82,8 +87,10 @@ void main() {
     );
     expect(find.byType(FilledButton), findsOneWidget);
     expect(find.byType(OutlinedButton), findsNothing);
+    expect(find.textContaining('توافق على قياس'), findsOneWidget);
+    await tester.tap(find.text('متابعة دون قياس'));
     await tester.tap(find.text('افتح العقار'));
-    expect(opened, isTrue);
+    expect(choices, [false, true]);
   });
 
   testWidgets('privacy options are reached through a dedicated page', (
