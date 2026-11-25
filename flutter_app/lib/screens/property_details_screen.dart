@@ -9,6 +9,7 @@ import '../data/property_data.dart';
 import '../data/salam_offer.dart';
 import '../widgets/common.dart';
 import 'contact_screen.dart';
+import 'privacy_screen.dart';
 
 class PropertyDetailsScreen extends StatefulWidget {
   const PropertyDetailsScreen({
@@ -299,6 +300,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   style: TextStyle(color: AppColors.muted, fontSize: 12),
                 ),
               ],
+              const SizedBox(height: 12),
+              const PrivacyLink(),
             ],
           ),
         ),

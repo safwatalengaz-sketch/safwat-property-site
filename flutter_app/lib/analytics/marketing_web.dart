@@ -3,8 +3,14 @@ import 'dart:js_interop';
 @JS('safwatMarketing')
 external JSObject? get _bridge;
 
-@JS('safwatMarketing.allowed')
-external JSBoolean _allowed();
+@JS('safwatMarketing.privacyState')
+external JSString _privacyState();
+
+@JS('safwatMarketing.showWelcome')
+external JSBoolean _showWelcome();
+
+@JS('safwatMarketing.dismissWelcome')
+external void _dismissWelcome();
 
 @JS('safwatMarketing.setAllowed')
 external void _setAllowed(JSBoolean value);
@@ -16,7 +22,12 @@ external void _page(JSString path);
 external void _contact(JSString channel);
 
 bool get available => _bridge != null;
-bool get allowed => available && _allowed().toDart;
+String get privacyState => available ? _privacyState().toDart : 'unavailable';
+bool get showWelcome => available && _showWelcome().toDart;
+void dismissWelcome() {
+  if (available) _dismissWelcome();
+}
+
 void setAllowed(bool value) {
   if (available) _setAllowed(value.toJS);
 }

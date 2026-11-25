@@ -8,6 +8,7 @@ import '../analytics/marketing.dart';
 import '../app.dart';
 import '../data/property_data.dart';
 import '../widgets/common.dart';
+import 'privacy_screen.dart';
 
 class ContactScreen extends StatelessWidget {
   const ContactScreen({super.key});
@@ -198,28 +199,12 @@ class ContactScreen extends StatelessWidget {
               'ترخيص الإعلان العقاري: ${PropertyData.license}',
               style: TextStyle(color: AppColors.muted, fontSize: 12),
             ),
-            const _StopMeasurementButton(),
+            const PrivacyLink(),
           ],
         ),
       ),
     ),
   );
-}
-
-class _StopMeasurementButton extends StatelessWidget {
-  const _StopMeasurementButton();
-
-  @override
-  Widget build(BuildContext context) {
-    if (!Marketing.allowed) return const SizedBox.shrink();
-    return Align(
-      alignment: AlignmentDirectional.centerStart,
-      child: TextButton(
-        onPressed: () => Marketing.setAllowed(false),
-        child: const Text('إيقاف القياس الإعلاني'),
-      ),
-    );
-  }
 }
 
 class _ContactTile extends StatelessWidget {

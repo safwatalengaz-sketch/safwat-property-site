@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../app.dart';
 import '../data/property_data.dart';
+import 'privacy_screen.dart';
 import 'works_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -40,6 +41,8 @@ class HomeScreen extends StatelessWidget {
               const KingFahdBuildingCard(),
               const SizedBox(height: 16),
               const SalamOfferCard(showContact: true),
+              const SizedBox(height: 12),
+              const PrivacyLink(),
             ],
           ),
         ),

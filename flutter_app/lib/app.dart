@@ -7,6 +7,7 @@ import 'data/property_data.dart';
 import 'data/salam_offer.dart';
 import 'screens/app_shell.dart';
 import 'screens/contact_screen.dart';
+import 'screens/privacy_screen.dart';
 import 'screens/property_details_screen.dart';
 
 class AppColors {
@@ -27,8 +28,22 @@ class SafwatApp extends StatefulWidget {
 
 class _SafwatAppState extends State<SafwatApp> {
   bool _showSplash = true;
+  bool _dismissedWelcome = false;
+
+  void _closeWelcome() {
+    Marketing.dismissWelcome();
+    setState(() => _dismissedWelcome = true);
+  }
+
   late final GoRouter _router = GoRouter(
     routes: [
+      GoRoute(
+        path: PrivacyScreen.path,
+        builder: (context, state) => const _MeasuredScreen(
+          path: PrivacyScreen.path,
+          child: PrivacyScreen(),
+        ),
+      ),
       GoRoute(
         path: PropertyData.buildingPath,
         builder: (context, state) => const _MeasuredScreen(
@@ -72,6 +87,8 @@ class _SafwatAppState extends State<SafwatApp> {
 
   @override
   Widget build(BuildContext context) {
+    final showWelcome =
+        !_showSplash && !_dismissedWelcome && Marketing.showWelcome;
     final scheme = ColorScheme.fromSeed(
       seedColor: AppColors.navy,
       primary: AppColors.navy,
@@ -144,9 +161,13 @@ class _SafwatAppState extends State<SafwatApp> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            ?child,
+            ExcludeFocus(
+              excluding: showWelcome,
+              child: ExcludeSemantics(excluding: showWelcome, child: child),
+            ),
             if (_showSplash)
               SplashGate(onReady: () => setState(() => _showSplash = false)),
+            if (showWelcome) MeasurementWelcome(onClose: _closeWelcome),
           ],
         ),
       ),

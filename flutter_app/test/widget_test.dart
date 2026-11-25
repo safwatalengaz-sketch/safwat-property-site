@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:safwat_property_app/app.dart';
 import 'package:safwat_property_app/data/salam_offer.dart';
 import 'package:safwat_property_app/screens/property_details_screen.dart';
+import 'package:safwat_property_app/screens/privacy_screen.dart';
 import 'package:safwat_property_app/screens/works_screen.dart';
 
 void main() {
@@ -64,6 +65,45 @@ void main() {
   testWidgets('app starts with its Arabic splash screen', (tester) async {
     await tester.pumpWidget(const SafwatApp());
     expect(find.textContaining('%'), findsOneWidget);
+  });
+
+  testWidgets('entrance card shows the requested text and one button', (
+    tester,
+  ) async {
+    var opened = false;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: MeasurementWelcome(onClose: () => opened = true)),
+      ),
+    );
+    expect(
+      find.text('لمشاهدة تفاصيل العقار، اضغط على الزر أدناه'),
+      findsOneWidget,
+    );
+    expect(find.byType(FilledButton), findsOneWidget);
+    expect(find.byType(OutlinedButton), findsNothing);
+    await tester.tap(find.text('افتح العقار'));
+    expect(opened, isTrue);
+  });
+
+  testWidgets('privacy options are reached through a dedicated page', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const SafwatApp());
+    await tester.pumpAndSettle();
+    expect(find.text('السماح بالقياس الإعلاني'), findsNothing);
+
+    final link = find.text('الخصوصية والقياس');
+    await tester.ensureVisible(link);
+    await tester.pumpAndSettle();
+    await tester.tap(link);
+    await tester.pumpAndSettle();
+    expect(find.text('السماح بالقياس الإعلاني'), findsOneWidget);
+    expect(find.text('رفض القياس الإعلاني'), findsOneWidget);
+    await tester.tap(find.byTooltip('رجوع'));
+    await tester.pumpAndSettle();
+    expect(find.text('رفض القياس الإعلاني'), findsNothing);
+    expect(find.text('العقارات المتاحة'), findsOneWidget);
   });
 
   testWidgets('legacy ad link still leads to home and the property catalog', (

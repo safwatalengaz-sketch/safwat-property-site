@@ -5,6 +5,7 @@ const { test } = require('node:test');
 const vm = require('node:vm');
 
 function site(preference, privacySignals = {}, query = '?gclid=example', referrer = '') {
+  const values = new Map([['safwat-snap-marketing-v1', preference ?? null]]);
   const scripts = [];
   const scriptElements = [];
   const preloads = [];
@@ -25,8 +26,8 @@ function site(preference, privacySignals = {}, query = '?gclid=example', referre
       } },
     },
     localStorage: {
-      getItem: () => preference,
-      setItem: (_, value) => { preference = value; },
+      getItem: (key) => values.get(key) ?? null,
+      setItem: (key, value) => { values.set(key, value); },
     },
     navigator: privacySignals,
     addEventListener: (name, callback) => { listeners[name] = callback; },
@@ -44,6 +45,7 @@ function site(preference, privacySignals = {}, query = '?gclid=example', referre
 test('consented calls and WhatsApp clicks reach all three configured destinations', () => {
   const { browser, scripts, marketing } = site();
   const config = browser.safwatMarketingConfig;
+  marketing.dismissWelcome();
   marketing.page('/properties/mb-246');
   marketing.setAllowed(true);
   marketing.contact('phone');
@@ -75,6 +77,7 @@ for (const [label, preference, signals, query, referrer] of [
 ]) {
   test(`no advertising requests for ${label}`, () => {
     const { browser, scripts, marketing } = site(preference, signals, query, referrer);
+    marketing.dismissWelcome();
     marketing.page('/properties');
     marketing.contact('phone');
     marketing.contact('whatsapp');
@@ -88,6 +91,13 @@ for (const [label, preference, signals, query, referrer] of [
 test('a new visitor queues one limited Google view per route and one conversion per click', () => {
   const { browser, marketing, scripts } = site(null);
   marketing.page('/properties/mb-246');
+  assert.equal(marketing.showWelcome(), true);
+  assert.equal(scripts.length, 0);
+  marketing.dismissWelcome();
+  marketing.dismissWelcome();
+  assert.equal(marketing.showWelcome(), false);
+  assert.equal(browser.localStorage.getItem('safwat-entrance-dismissed-v1'), '1');
+  assert.equal(browser.localStorage.getItem('safwat-snap-marketing-v1'), null);
   marketing.page('/properties/mb-246');
   browser.location.href = 'https://example.test/works';
   marketing.page('/works');
@@ -112,6 +122,7 @@ test('a new visitor queues one limited Google view per route and one conversion 
 
 test('granting loads the three tags without replaying earlier clicks', () => {
   const { browser, scripts, marketing } = site(null, {}, '?ScCid=example');
+  marketing.dismissWelcome();
   marketing.page('/properties');
   marketing.contact('whatsapp');
   marketing.setAllowed(true);
@@ -171,6 +182,7 @@ test('revoking reloads to unload the SDKs and blocks further contact events', ()
 
 test('one pixel failure does not block the other two destinations', () => {
   const { browser, marketing } = site();
+  marketing.dismissWelcome();
   marketing.page('/contact');
   marketing.setAllowed(true);
   browser.snaptr = () => { throw new Error('Simulated pixel failure'); };

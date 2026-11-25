@@ -3,12 +3,14 @@
 
   const config = window.safwatMarketingConfig || {};
   const preferenceKey = 'safwat-snap-marketing-v1';
+  const entranceKey = 'safwat-entrance-dismissed-v1';
   const denialKey = preferenceKey + '-session-denial';
   const landingUrl = location.href;
   const snapScript = 'https://sc-static.net/scevent.min.js';
   const tiktokEndpoint = 'https://analytics.tiktok.com/i18n/pixel/events.js';
   const tiktokScript = tiktokEndpoint + '?sdkid=' + encodeURIComponent(config.tiktokPixelId) + '&lib=ttq';
   let preference;
+  let entranceOpened = false;
   let currentPage;
   let lastSentPage;
   let lastLimitedPage;
@@ -17,6 +19,8 @@
 
   try {
     preference = localStorage.getItem(preferenceKey);
+    entranceOpened = localStorage.getItem(entranceKey) === '1' ||
+      preference === 'allow' || preference === 'deny';
   } catch {
     preference = 'deny';
   }
@@ -158,7 +162,7 @@
   }
 
   function sendPage() {
-    if (!currentPage || lastSentPage === currentPage) return;
+    if (!entranceOpened || !currentPage || lastSentPage === currentPage) return;
     if (allowed()) {
       initialize();
       if (config.snapPixelId) dispatch('Snapchat', () => window.snaptr('track', 'PAGE_VIEW'));
@@ -177,7 +181,16 @@
 
   window.safwatMarketing = {
     allowed,
+    showWelcome: () => !entranceOpened,
+    dismissWelcome() {
+      if (entranceOpened) return;
+      entranceOpened = true;
+      try { localStorage.setItem(entranceKey, '1'); } catch {}
+      sendPage();
+    },
+    privacyState: () => navigator.globalPrivacyControl ? 'blocked' : preference || 'unset',
     setAllowed(value) {
+      if (value && navigator.globalPrivacyControl) return;
       preference = value ? 'allow' : 'deny';
       let saved = false;
       try {
@@ -185,10 +198,7 @@
         saved = true;
       } catch {
         if (!value) {
-          try {
-            localStorage.removeItem(preferenceKey);
-            saved = true;
-          } catch {}
+          try { localStorage.removeItem(preferenceKey); } catch {}
         }
       }
       try {
@@ -209,7 +219,7 @@
       sendPage();
     },
     contact(channel) {
-      if (channel !== 'phone' && channel !== 'whatsapp') return;
+      if (!entranceOpened || (channel !== 'phone' && channel !== 'whatsapp')) return;
       const fullMeasurement = allowed();
       if (!fullMeasurement && !googleLimited()) return;
       if (fullMeasurement) initialize();
@@ -237,14 +247,14 @@
     if (event.storageArea !== localStorage ||
         (event.key !== preferenceKey && event.key !== null)) return;
     preference = event.newValue;
-    if (allowed()) {
+    if (allowed() && entranceOpened) {
       initialize();
       sendPage();
     } else if (initialized || googleInitialized) {
       location.reload();
     }
   });
-  if (allowed()) {
+  if (entranceOpened && allowed()) {
     // Flutter normalizes deep-link URLs. Fetch the SDKs early but defer their
     // automatic history listeners until the first measured Flutter route.
     if (config.snapPixelId) preloadScript(snapScript);
