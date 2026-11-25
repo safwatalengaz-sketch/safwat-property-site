@@ -67,7 +67,7 @@ class MeasurementWelcome extends StatelessWidget {
                             if (canChooseMeasurement) ...[
                               const SizedBox(height: 6),
                               const Text(
-                                'بالضغط على «افتح العقار»، توافق على قياس مشاهدات الصفحات ونقرات واتساب والهاتف عبر جوجل وسناب شات وتيك توك.',
+                                'بالضغط على «افتح العقار»، توافق على قياس مشاهدات الصفحات ونقرات واتساب والهاتف عبر Google Ads وإحصاءات Google وسناب شات وتيك توك.',
                                 textAlign: TextAlign.center,
                               ),
                               TextButton(
@@ -128,7 +128,8 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
     final theme = Theme.of(context);
     final state = Marketing.privacyState;
     final status = switch (state) {
-      'allow' => 'اختيارك الحالي: السماح بالقياس الإعلاني.',
+      'allow' => 'اختيارك الحالي: السماح بالقياس الإعلاني والتحليلي.',
+      'allow-ads' => 'اختيارك السابق يسمح بالقياس الإعلاني. يمكنك تحديثه لتشمل موافقتك إحصاءات Google.',
       'deny' => 'اختيارك الحالي: رفض القياس الإعلاني.',
       'blocked' => 'إشارة الخصوصية في متصفحك توقف القياس الإعلاني.',
       'unavailable' => 'إعدادات القياس غير متاحة في هذه الجلسة.',
@@ -151,17 +152,17 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
             padding: const EdgeInsets.fromLTRB(18, 28, 62, 32),
             children: [
               Text(
-                'خيارات القياس الإعلاني',
+                'خيارات القياس الإعلاني والتحليلي',
                 style: theme.textTheme.headlineSmall,
               ),
               const SizedBox(height: 12),
               const Text(
                 'قبل اختيارك، قد ترسل Google Ads إشارات محدودة عن مشاهدة الصفحات وضغطات واتساب والهاتف دون استخدام ملفات تعريف الارتباط الإعلانية. '
-                'إذا اخترت السماح، تستخدم Google Ads وسناب شات وتيك توك هذه الأحداث لقياس أداء الإعلانات.',
+                'إذا اخترت السماح، تستخدم Google Ads وسناب شات وتيك توك هذه الأحداث لقياس أداء الإعلانات. تستخدم إحصاءات Google الأحداث نفسها وملفات تعريف ارتباط التحليلات لقياس استخدام الموقع.',
               ),
               const SizedBox(height: 10),
               const Text(
-                'عند الرفض يتوقف إرسال أحداث القياس الإعلاني من هذا المتصفح. يمكنك تغيير اختيارك هنا في أي وقت، ويظل التواصل متاحًا في الحالتين.',
+                'عند الرفض يتوقف إرسال أحداث القياس الإعلاني والتحليلي من هذا المتصفح. يمكنك تغيير اختيارك هنا في أي وقت، ويظل التواصل متاحًا في الحالتين.',
               ),
               const SizedBox(height: 20),
               Semantics(liveRegion: true, child: Text(status)),

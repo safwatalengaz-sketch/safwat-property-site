@@ -5,5 +5,6 @@ window.safwatMarketingConfig = {
   googleAdsTagId: 'AW-18584395295',
   googleAdsPhoneLabel: 'Fk-OCL-Js7wdEJ-83Z1F',
   googleAdsWhatsAppLabel: 'HWUTCP_NubwdEJ-83Z1F',
+  googleAnalyticsId: 'G-8YR9XEDZQN',
   tiktokPixelId: 'DC0EMQ3C77U1013HCR2G',
 };

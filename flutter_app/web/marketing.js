@@ -5,6 +5,7 @@
   const preferenceKey = 'safwat-snap-marketing-v1';
   const entranceKey = 'safwat-entrance-dismissed-v1';
   const denialKey = preferenceKey + '-session-denial';
+  const analyticsGrant = 'allow-analytics-v1';
   const landingUrl = location.href;
   const snapScript = 'https://sc-static.net/scevent.min.js';
   const tiktokEndpoint = 'https://analytics.tiktok.com/i18n/pixel/events.js';
@@ -16,11 +17,14 @@
   let lastLimitedPage;
   let initialized = false;
   let googleInitialized = false;
+  let analyticsInitialized = false;
+  let lastAnalyticsPage;
 
+  const hasGrant = () => preference === 'allow' || preference === analyticsGrant;
   try {
     preference = localStorage.getItem(preferenceKey);
     entranceOpened = localStorage.getItem(entranceKey) === '1' ||
-      preference === 'allow' || preference === 'deny';
+      hasGrant() || preference === 'deny';
   } catch {
     preference = 'deny';
   }
@@ -28,7 +32,9 @@
     if (sessionStorage.getItem(denialKey) === 'deny') preference = 'deny';
   } catch {}
 
-  const allowed = () => preference === 'allow' && !window.navigator?.globalPrivacyControl;
+  const allowed = () => hasGrant() && !window.navigator?.globalPrivacyControl;
+  const analyticsAllowed = () => !!config.googleAnalyticsId &&
+    preference === analyticsGrant && allowed() && navigator.doNotTrack !== '1';
   function googleLimited() {
     if (preference !== null || navigator.globalPrivacyControl || navigator.doNotTrack === '1') return false;
     // Redaction covers Google's click ID. Keep other identifiers and arbitrary
@@ -129,6 +135,24 @@
     loadScript('https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(tagId), () => allowed() || googleLimited());
   }
 
+  function sendAnalytics(event) {
+    if (!analyticsAllowed()) return;
+    dispatch('Google Analytics', () => {
+      initializeGoogle(config.googleAdsTagId || config.googleAnalyticsId);
+      if (!analyticsInitialized) {
+        window.gtag('consent', 'update', { analytics_storage: 'granted' });
+        window.gtag('config', config.googleAnalyticsId, {
+          ...googlePageContext(),
+          send_page_view: false,
+          allow_google_signals: false,
+          allow_ad_personalization_signals: false,
+        });
+        analyticsInitialized = true;
+      }
+      window.gtag('event', event, { ...googlePageContext(), send_to: config.googleAnalyticsId });
+    });
+  }
+
   function initializeTikTok(pixelId) {
     window.TiktokAnalyticsObject = 'ttq';
     const queue = window.ttq = window.ttq || [];
@@ -165,7 +189,12 @@
   }
 
   function sendPage() {
-    if (!entranceOpened || !currentPage || lastSentPage === currentPage) return;
+    if (!entranceOpened || !currentPage) return;
+    if (analyticsAllowed() && lastAnalyticsPage !== currentPage) {
+      lastAnalyticsPage = currentPage;
+      sendAnalytics('page_view');
+    }
+    if (lastSentPage === currentPage) return;
     if (allowed()) {
       initialize();
       if (config.snapPixelId) whenRouteMatches(currentPage, allowed, () => {
@@ -195,10 +224,15 @@
       try { localStorage.setItem(entranceKey, '1'); } catch {}
       sendPage();
     },
-    privacyState: () => navigator.globalPrivacyControl ? 'blocked' : preference || 'unset',
+    privacyState: () => {
+      if (navigator.globalPrivacyControl) return 'blocked';
+      if (preference === analyticsGrant) return 'allow';
+      if (preference === 'allow' && config.googleAnalyticsId) return 'allow-ads';
+      return preference || 'unset';
+    },
     setAllowed(value) {
       if (value && navigator.globalPrivacyControl) return;
-      preference = value ? 'allow' : 'deny';
+      preference = value ? (config.googleAnalyticsId ? analyticsGrant : 'allow') : 'deny';
       let saved = false;
       try {
         localStorage.setItem(preferenceKey, preference);
@@ -247,6 +281,7 @@
           });
         });
       }
+      sendAnalytics(channel === 'phone' ? 'phone_click' : 'whatsapp_click');
     },
   };
 
@@ -254,7 +289,9 @@
     if (event.storageArea !== localStorage ||
         (event.key !== preferenceKey && event.key !== null)) return;
     preference = event.newValue;
-    if (allowed() && entranceOpened) {
+    if (analyticsInitialized && !analyticsAllowed()) {
+      location.reload();
+    } else if (allowed() && entranceOpened) {
       initialize();
       sendPage();
     } else if (initialized || googleInitialized) {

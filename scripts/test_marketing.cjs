@@ -147,6 +147,48 @@ test('stored approval preloads SDKs and repeated route callbacks do not add view
   assert.equal(browser.ttq.filter(e => e[0] === 'page').length, 1);
   assert.equal(browser.ttq.filter(e => e[1] === 'WhatsAppClick').length, 2);
   assert.equal(scripts.length, 3);
+  assert.ok(browser.dataLayer.every(e => e[2]?.send_to !== browser.safwatMarketingConfig.googleAnalyticsId));
+});
+
+test('GA4 starts with disclosed consent and sends only one event per interaction', () => {
+  const { browser, marketing } = site('allow', {}, '?utm_source=google&private=example');
+  const id = browser.safwatMarketingConfig.googleAnalyticsId;
+  marketing.page('/properties/mb-246');
+  marketing.contact('whatsapp');
+  assert.equal(marketing.privacyState(), 'allow-ads');
+  assert.ok(browser.dataLayer.every(e => e[1] !== id && e[2]?.send_to !== id));
+
+  marketing.setAllowed(true);
+  marketing.page('/properties/mb-246');
+  marketing.contact('whatsapp');
+  marketing.contact('phone');
+  browser.location.href = 'https://example.test/works';
+  marketing.page('/works');
+  browser.location.href = 'https://example.test/properties/mb-246';
+  marketing.page('/properties/mb-246');
+  const events = browser.dataLayer.filter(e => e[0] === 'event' && e[2]?.send_to === id);
+  const configuration = browser.dataLayer.filter(e => e[0] === 'config' && e[1] === id);
+  assert.equal(configuration.length, 1);
+  assert.equal(configuration[0][2].send_page_view, false);
+  assert.deepEqual(Array.from(events, e => e[1]), [
+    'page_view', 'whatsapp_click', 'phone_click', 'page_view', 'page_view',
+  ]);
+  assert.equal(events[0][2].page_location, 'https://example.test/properties/mb-246');
+  assert.ok(events.every(e => !e[2].page_location.includes('?')));
+});
+
+test('GA4 does not run in the limited Google Ads path or after refusal', () => {
+  const { browser, marketing } = site(null);
+  const id = browser.safwatMarketingConfig.googleAnalyticsId;
+  marketing.dismissWelcome();
+  marketing.page('/properties/mb-246');
+  marketing.contact('phone');
+  assert.ok(browser.dataLayer.every(e => e[1] !== id && e[2]?.send_to !== id));
+  marketing.setAllowed(true);
+  assert.equal(browser.dataLayer.filter(e => e[1] === 'page_view' && e[2]?.send_to === id).length, 1);
+  marketing.setAllowed(false);
+  marketing.contact('phone');
+  assert.equal(browser.dataLayer.filter(e => e[1] === 'phone_click' && e[2]?.send_to === id).length, 0);
 });
 
 test('Snap waits until browser history has actually moved to the new route', () => {
@@ -203,7 +245,7 @@ test('one pixel failure does not block the other two destinations', () => {
   browser.snaptr = () => { throw new Error('Simulated pixel failure'); };
   assert.doesNotThrow(() => marketing.contact('phone'));
   assert.equal(browser.ttq.at(-1)[1], 'PhoneClick');
-  assert.equal(browser.dataLayer.at(-1)[1], 'conversion');
+  assert.ok(browser.dataLayer.some(event => event[1] === 'conversion'));
 });
 
 test('a script load failure retries once without adding another conversion', () => {
