@@ -14,6 +14,7 @@ function site(preference, privacySignals = {}, query = '?gclid=example', referre
     console: { warn() {} },
     document: {
       referrer,
+      baseURI: 'https://example.test/',
       createElement: () => ({ remove() {} }),
       head: { append: (element) => {
         if (element.rel === 'preload') preloads.push(element.href);
@@ -62,9 +63,18 @@ test('consented calls and WhatsApp clicks reach all three configured destination
   ]);
 });
 
-for (const preference of [null, 'deny']) {
-  test(`nothing is sent without an explicit grant (preference: ${preference})`, () => {
-    const { browser, scripts, marketing } = site(preference);
+for (const [label, preference, signals, query, referrer] of [
+  ['explicit refusal', 'deny'],
+  ['privacy control', null, { globalPrivacyControl: true }],
+  ['Do Not Track', null, { doNotTrack: '1' }],
+  ['Snap click ID', null, {}, '?ScCid=example'],
+  ['TikTok click ID', null, {}, '?ttclid=example'],
+  ['arbitrary query', null, {}, '?name=example'],
+  ['arbitrary referrer query', null, {}, '', 'https://example.org/?email=example'],
+  ['fragment', null, {}, '#example'],
+]) {
+  test(`no advertising requests for ${label}`, () => {
+    const { browser, scripts, marketing } = site(preference, signals, query, referrer);
     marketing.page('/properties');
     marketing.contact('phone');
     marketing.contact('whatsapp');
@@ -75,8 +85,33 @@ for (const preference of [null, 'deny']) {
   });
 }
 
+test('a new visitor queues one limited Google view per route and one conversion per click', () => {
+  const { browser, marketing, scripts } = site(null);
+  marketing.page('/properties/mb-246');
+  marketing.page('/properties/mb-246');
+  browser.location.href = 'https://example.test/works';
+  marketing.page('/works');
+  marketing.page('/works');
+  marketing.contact('whatsapp');
+  marketing.contact('phone');
+  assert.equal(marketing.allowed(), false);
+  assert.equal(scripts.length, 1);
+  assert.match(scripts[0], /googletagmanager\.com/);
+  assert.equal(browser.snaptr, undefined);
+  assert.equal(browser.ttq, undefined);
+  const commands = browser.dataLayer;
+  assert.equal(commands.filter(e => e[0] === 'consent').length, 1);
+  assert.equal(commands[0][2].ad_storage, 'denied');
+  assert.equal(commands[0][2].ad_user_data, 'denied');
+  assert.equal(commands.find(e => e[1] === 'ads_data_redaction')[2], true);
+  const events = commands.filter(e => e[0] === 'event');
+  assert.deepEqual(Array.from(events, e => e[1]), ['page_view', 'conversion', 'conversion']);
+  assert.equal(events[0][2].page_location, 'https://example.test/works');
+  assert.ok(events.every(e => !e[2].page_location.includes('?') && !e[2].page_referrer));
+});
+
 test('granting loads the three tags without replaying earlier clicks', () => {
-  const { browser, scripts, marketing } = site();
+  const { browser, scripts, marketing } = site(null, {}, '?ScCid=example');
   marketing.page('/properties');
   marketing.contact('whatsapp');
   marketing.setAllowed(true);
