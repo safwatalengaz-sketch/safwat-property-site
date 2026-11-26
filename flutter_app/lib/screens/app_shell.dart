@@ -24,7 +24,12 @@ enum AppSection {
 }
 
 class SplashGate extends StatefulWidget {
-  const SplashGate({super.key, required this.onReady});
+  const SplashGate({
+    super.key,
+    required this.preloadCatalogBanners,
+    required this.onReady,
+  });
+  final bool preloadCatalogBanners;
   final VoidCallback onReady;
   @override
   State<SplashGate> createState() => _SplashGateState();
@@ -60,10 +65,12 @@ class _SplashGateState extends State<SplashGate>
   Future<void> _prepare() async {
     _controller.forward();
     _playIntroAudio();
-    const core = [
+    final core = [
       'assets/logo/safwat-logo.jpeg',
-      'assets/images/banners/home-banner.png',
-      'assets/images/banners/works-banner.png',
+      if (widget.preloadCatalogBanners) ...[
+        'assets/images/banners/home-banner.png',
+        'assets/images/banners/works-banner.png',
+      ],
     ];
     for (var i = 0; i < core.length; i++) {
       try {

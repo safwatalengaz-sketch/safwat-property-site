@@ -90,6 +90,7 @@ class _SafwatAppState extends State<SafwatApp> {
   Widget build(BuildContext context) {
     final showWelcome =
         !_showSplash && !_dismissedWelcome && Marketing.showWelcome;
+    final initialPath = _router.routeInformationProvider.value.uri.path;
     final scheme = ColorScheme.fromSeed(
       seedColor: AppColors.navy,
       primary: AppColors.navy,
@@ -167,7 +168,12 @@ class _SafwatAppState extends State<SafwatApp> {
               child: ExcludeSemantics(excluding: showWelcome, child: child),
             ),
             if (_showSplash)
-              SplashGate(onReady: () => setState(() => _showSplash = false)),
+              SplashGate(
+                preloadCatalogBanners:
+                    initialPath == AppSection.home.path ||
+                    initialPath == AppSection.works.path,
+                onReady: () => setState(() => _showSplash = false),
+              ),
             if (showWelcome)
               MeasurementWelcome(
                 canChooseMeasurement: Marketing.privacyState == 'unset',
