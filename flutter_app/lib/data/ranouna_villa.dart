@@ -11,7 +11,7 @@ abstract final class RanounaVilla {
   static const images = 'assets/images/ranouna';
   static const cover = '$images/facade-cover.webp';
   static const poster = '$images/tour-poster.webp';
-  static const tour = 'assets/videos/ranouna-villa-tour.mp4';
+  static const tour = 'assets/videos/ranouna-villa-web-2032eff413bb.mp4';
 
   static const photos = <(String, String)>[
     ('facade', 'واجهة الفيلا'),
