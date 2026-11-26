@@ -38,6 +38,8 @@ class HomeScreen extends StatelessWidget {
                 label: const Text('العقارات المتاحة'),
               ),
               const SizedBox(height: 10),
+              const RanounaVillaCard(),
+              const SizedBox(height: 16),
               const KingFahdBuildingCard(),
               const SizedBox(height: 16),
               const SalamOfferCard(showContact: true),

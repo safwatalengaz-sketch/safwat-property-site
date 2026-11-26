@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../app.dart';
 import '../data/property_data.dart';
+import '../data/ranouna_villa.dart';
 import '../data/salam_offer.dart';
 import 'contact_screen.dart';
 
@@ -49,6 +50,8 @@ class WorksScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
+            const RanounaVillaCard(),
+            const SizedBox(height: 18),
             _ListingCard(
               cover: Image.asset(
                 'assets/images/banners/works-banner.png',
@@ -72,6 +75,38 @@ class WorksScreen extends StatelessWidget {
         ),
       ),
     ),
+  );
+}
+
+class RanounaVillaCard extends StatelessWidget {
+  const RanounaVillaCard({super.key});
+
+  @override
+  Widget build(BuildContext context) => _ListingCard(
+    cover: Image.asset(
+      RanounaVilla.cover,
+      fit: BoxFit.cover,
+      semanticLabel: 'واجهة فيلا الرانوناء',
+    ),
+    coverAspectRatio: 16 / 11,
+    title: RanounaVilla.title,
+    subtitle: const Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        LocationLine(text: RanounaVilla.location),
+        SizedBox(height: 5),
+        Text(
+          RanounaVilla.price,
+          style: TextStyle(color: AppColors.navy, fontWeight: FontWeight.w800),
+        ),
+      ],
+    ),
+    facts: const [
+      'الأرض ${RanounaVilla.landArea}',
+      'البناء ${RanounaVilla.builtArea}',
+    ],
+    onTap: () => context.go(RanounaVilla.path),
+    contactMessage: RanounaVilla.inquiry,
   );
 }
 
@@ -126,6 +161,7 @@ class _ListingCard extends StatelessWidget {
     required this.facts,
     required this.onTap,
     this.contactMessage,
+    this.coverAspectRatio = 2,
   });
 
   final Widget cover;
@@ -134,6 +170,7 @@ class _ListingCard extends StatelessWidget {
   final List<String> facts;
   final VoidCallback onTap;
   final String? contactMessage;
+  final double coverAspectRatio;
 
   @override
   Widget build(BuildContext context) => AppCard(
@@ -144,7 +181,7 @@ class _ListingCard extends StatelessWidget {
       children: [
         ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-          child: AspectRatio(aspectRatio: 2, child: cover),
+          child: AspectRatio(aspectRatio: coverAspectRatio, child: cover),
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
