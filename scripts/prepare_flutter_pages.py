@@ -51,7 +51,7 @@ for route, (title, description) in ROUTES.items():
     description = escape(description)
     page = re.sub(r"<title>[^<]*</title>", f"<title>{title}</title>", shell)
     share_image = (
-        "assets/assets/images/ranouna/facade-share.jpg"
+        "assets/assets/images/ranouna/cover-design.jpg"
         if route == "villas/ranouna-200"
         else "safwat-share.png"
     )

@@ -5,7 +5,6 @@ import 'package:safwat_property_app/data/ranouna_villa.dart';
 import 'package:safwat_property_app/data/salam_offer.dart';
 import 'package:safwat_property_app/screens/property_details_screen.dart';
 import 'package:safwat_property_app/screens/privacy_screen.dart';
-import 'package:safwat_property_app/screens/ranouna_villa_screen.dart';
 import 'package:safwat_property_app/screens/works_screen.dart';
 
 void main() {
@@ -146,7 +145,12 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(villaDetails);
     await tester.pumpAndSettle();
-    expect(find.byType(RanounaVillaScreen), findsOneWidget);
+    expect(
+      tester
+          .widget<PropertyDetailsScreen>(find.byType(PropertyDetailsScreen))
+          .isRanounaVilla,
+      isTrue,
+    );
   });
 
   testWidgets('Ranouna opens directly and shows its details and full photos', (
@@ -162,14 +166,16 @@ void main() {
 
     await tester.pumpWidget(const SafwatApp());
     await tester.pumpAndSettle();
-    expect(find.text(RanounaVilla.title), findsOneWidget);
-    expect(find.text(RanounaVilla.price), findsOneWidget);
-    expect(find.text(RanounaVilla.location), findsOneWidget);
-    final scrollable = find.descendant(
-      of: find.byType(CustomScrollView),
-      matching: find.byType(Scrollable),
-    );
-    final facade = find.text('واجهة الفيلا');
+    expect(find.image(const AssetImage(RanounaVilla.cover)), findsOneWidget);
+    expect(RanounaVilla.photos.length, 25);
+    expect(find.text('تفاصيل العقار'), findsOneWidget);
+    final scrollable = find
+        .descendant(
+          of: find.byType(ListView).first,
+          matching: find.byType(Scrollable),
+        )
+        .first;
+    final facade = find.image(AssetImage(RanounaVilla.photoAssets.first)).first;
     await tester.scrollUntilVisible(
       facade.hitTestable(),
       220,
@@ -184,10 +190,23 @@ void main() {
     await tester.tap(find.byTooltip('إغلاق الصور'));
     await tester.pumpAndSettle();
 
-    final license = find.textContaining(RanounaVilla.license);
-    await tester.scrollUntilVisible(license, 460, scrollable: scrollable);
-    expect(license, findsOneWidget);
-    expect(find.text('الملحق'), findsOneWidget);
+    for (final detail in [
+      find.text(RanounaVilla.location),
+      find.text(RanounaVilla.title),
+      find.text(RanounaVilla.price),
+      find.text('الملحق'),
+      find.textContaining(RanounaVilla.license),
+    ]) {
+      for (
+        var attempt = 0;
+        detail.evaluate().isEmpty && attempt < 18;
+        attempt++
+      ) {
+        await tester.dragFrom(const Offset(120, 640), const Offset(0, -240));
+        await tester.pumpAndSettle();
+      }
+      expect(detail, findsOneWidget);
+    }
     expect(find.textContaining('شارع 6'), findsNothing);
     expect(tester.takeException(), isNull);
   });

@@ -85,10 +85,9 @@ class RanounaVillaCard extends StatelessWidget {
   Widget build(BuildContext context) => _ListingCard(
     cover: Image.asset(
       RanounaVilla.cover,
-      fit: BoxFit.cover,
-      semanticLabel: 'واجهة فيلا الرانوناء',
+      fit: BoxFit.contain,
+      semanticLabel: 'غلاف فيلا الرانوناء',
     ),
-    coverAspectRatio: 16 / 11,
     title: RanounaVilla.title,
     subtitle: const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -161,7 +160,6 @@ class _ListingCard extends StatelessWidget {
     required this.facts,
     required this.onTap,
     this.contactMessage,
-    this.coverAspectRatio = 2,
   });
 
   final Widget cover;
@@ -170,7 +168,6 @@ class _ListingCard extends StatelessWidget {
   final List<String> facts;
   final VoidCallback onTap;
   final String? contactMessage;
-  final double coverAspectRatio;
 
   @override
   Widget build(BuildContext context) => AppCard(
@@ -181,7 +178,7 @@ class _ListingCard extends StatelessWidget {
       children: [
         ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-          child: AspectRatio(aspectRatio: coverAspectRatio, child: cover),
+          child: AspectRatio(aspectRatio: 2, child: cover),
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),

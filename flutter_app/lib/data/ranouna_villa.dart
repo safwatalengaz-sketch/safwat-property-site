@@ -9,24 +9,42 @@ abstract final class RanounaVilla {
   static const inquiry =
       'السلام عليكم، أود الاستفسار عن فيلا مخطط الرانوناء بمساحة أرض ٢٠٠ م².';
   static const images = 'assets/images/ranouna';
-  static const cover = '$images/facade-cover.webp';
-  static const poster = '$images/tour-poster.webp';
+  static const cover = '$images/cover-design.jpg';
+  static const poster = '$images/front-exterior.webp';
   static const tour = 'assets/videos/ranouna-villa-web-2032eff413bb.mp4';
+  static const description =
+      'مواقف واسعة جدًا، بحسب وصف المالك. أرضيات باركيه وورق جدران في كامل الفيلا.';
 
   static const photos = <(String, String)>[
-    ('facade', 'واجهة الفيلا'),
-    ('front-gate', 'البوابة الأمامية'),
-    ('side-entrance', 'المدخل الجانبي'),
-    ('outdoor-passage', 'الممر الخارجي'),
-    ('entrance-hall', 'ممر المدخل'),
-    ('majlis', 'المجلس'),
-    ('living-room', 'الصالة'),
-    ('interior-finishes', 'التشطيبات الداخلية'),
-    ('elevator-stairs', 'المصعد والدرج'),
-    ('interior-room', 'غرفة داخلية'),
-    ('upper-room', 'غرفة في الجزء العلوي'),
-    ('bathroom', 'دورة مياه'),
-    ('rooftop', 'السطح'),
+    ('front-exterior', 'واجهة الفيلا من الشارع'),
+    ('family-lounge-wide', 'الصالة العائلية من المدخل'),
+    ('majlis-wide', 'المجلس من المدخل'),
+    ('green-lounge-entry', 'الصالة الخضراء من المدخل'),
+    ('family-lounge-side', 'زاوية الجلسة العائلية'),
+    ('majlis-seating', 'توزيع الجلسة في المجلس'),
+    ('green-lounge-corner', 'زاوية الجلسة الخضراء'),
+    ('family-lounge-decor', 'تفاصيل الستائر والتشطيبات في الصالة العائلية'),
+    ('majlis-chandelier', 'ثريا المجلس والكنب'),
+    ('majlis-serving-area', 'ركن الضيافة في المجلس'),
+    ('green-lounge-tv', 'جدار التلفزيون في الصالة'),
+    ('lounge-passage', 'الممر بجوار الصالة'),
+    ('gate-closeup', 'البوابة الأمامية وتفاصيل الواجهة'),
+    ('side-door', 'المدخل الجانبي من الخارج'),
+    ('front-courtyard', 'الحوش أمام المدخل'),
+    ('side-passage', 'الممر الخارجي'),
+    ('hallway-lighting', 'ممر المدخل والإضاءة'),
+    ('second-entry', 'الباب من الحوش الجانبي'),
+    ('lift-lower', 'المصعد بجوار الدرج'),
+    ('stairs-landing', 'الدرج الداخلي'),
+    ('lift-upper', 'باب المصعد في الجزء العلوي'),
+    ('entry-vanity', 'المغسلة الخارجية والمرايا'),
+    ('bathroom-entry', 'دورة المياه من المدخل'),
+    ('bathroom-shower', 'المغسلة والدش في دورة مياه'),
+    ('roof-terrace', 'المساحة المفتوحة على السطح'),
+  ];
+
+  static final photoAssets = [
+    for (final (file, _) in photos) '$images/$file.webp',
   ];
 
   static const floors = <(String, String)>[

@@ -6,6 +6,7 @@ import 'package:video_player/video_player.dart';
 
 import '../app.dart';
 import '../data/property_data.dart';
+import '../data/ranouna_villa.dart';
 import '../data/salam_offer.dart';
 import '../widgets/common.dart';
 import 'contact_screen.dart';
@@ -16,9 +17,11 @@ class PropertyDetailsScreen extends StatefulWidget {
     super.key,
     this.isSalamOffer = false,
     this.isBuilding = false,
+    this.isRanounaVilla = false,
   });
   final bool isSalamOffer;
   final bool isBuilding;
+  final bool isRanounaVilla;
   @override
   State<PropertyDetailsScreen> createState() => _PropertyDetailsScreenState();
 }
@@ -26,8 +29,12 @@ class PropertyDetailsScreen extends StatefulWidget {
 class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   late final PageController _pageController;
   int _index = 0;
-  List<String> get _photos =>
-      widget.isSalamOffer ? SalamOffer.photos : PropertyData.photos;
+  List<String> get _photos => widget.isRanounaVilla
+      ? RanounaVilla.photoAssets
+      : widget.isSalamOffer
+      ? SalamOffer.photos
+      : PropertyData.photos;
+  bool get _showsMap => !widget.isSalamOffer && !widget.isRanounaVilla;
 
   @override
   void initState() {
@@ -53,9 +60,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           icon: const Icon(Icons.arrow_forward_rounded),
           onPressed: () => context.go('/works'),
         ),
-        actions: widget.isSalamOffer
-            ? null
-            : [
+        actions: _showsMap
+            ? [
                 IconButton(
                   tooltip: 'مشاركة',
                   onPressed: () async {
@@ -73,7 +79,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   icon: const Icon(Icons.share_outlined),
                 ),
                 const SizedBox(width: 6),
-              ],
+              ]
+            : null,
       ),
       body: Center(
         child: ConstrainedBox(
@@ -81,10 +88,26 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 30),
             children: [
+              if (widget.isRanounaVilla) ...[
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(18),
+                  child: AspectRatio(
+                    aspectRatio: 2,
+                    child: Image.asset(
+                      RanounaVilla.cover,
+                      fit: BoxFit.contain,
+                      semanticLabel: 'غلاف فيلا الرانوناء',
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
               _galleryCard(),
               const SizedBox(height: 18),
               Eyebrow(
-                widget.isSalamOffer
+                widget.isRanounaVilla
+                    ? RanounaVilla.location
+                    : widget.isSalamOffer
                     ? SalamOffer.district
                     : PropertyData.location,
               ),
@@ -92,7 +115,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                 const Text('رقم العرض ${SalamOffer.reference}'),
               const SizedBox(height: 4),
               Text(
-                widget.isSalamOffer
+                widget.isRanounaVilla
+                    ? RanounaVilla.title
+                    : widget.isSalamOffer
                     ? SalamOffer.title
                     : widget.isBuilding
                     ? PropertyData.buildingTitle
@@ -100,11 +125,40 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                 style: Theme.of(context).textTheme.titleLarge
                     ?.copyWith(color: AppColors.navy, fontSize: 22),
               ),
+              if (widget.isRanounaVilla) ...[
+                const SizedBox(height: 6),
+                const Text(
+                  RanounaVilla.price,
+                  style: TextStyle(
+                    color: AppColors.navy,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
               const SizedBox(height: 12),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: widget.isSalamOffer
+                children: widget.isRanounaVilla
+                    ? const [
+                        _DetailPill(
+                          Icons.square_foot_rounded,
+                          'الأرض ${RanounaVilla.landArea}',
+                        ),
+                        _DetailPill(
+                          Icons.apartment_outlined,
+                          'البناء ${RanounaVilla.builtArea}',
+                        ),
+                        _DetailPill(Icons.schedule_rounded, '٣ سنوات تقريبًا'),
+                        _DetailPill(Icons.explore_outlined, 'واجهة شرقية'),
+                        _DetailPill(Icons.elevator_outlined, 'مصعد مركب وجاهز'),
+                        _DetailPill(
+                          Icons.ac_unit_rounded,
+                          '١٣ مكيف سبليت جديدًا',
+                        ),
+                      ]
+                    : widget.isSalamOffer
                     ? const [
                         _DetailPill(Icons.square_foot_rounded, SalamOffer.area),
                         _DetailPill(
@@ -130,7 +184,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
               ),
               const SizedBox(height: 22),
               SectionTitle(
-                widget.isSalamOffer
+                widget.isRanounaVilla
+                    ? 'وصف الفيلا'
+                    : widget.isSalamOffer
                     ? 'وصف العرض'
                     : widget.isBuilding
                     ? 'وصف العمارة'
@@ -139,7 +195,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
               const SizedBox(height: 10),
               AppCard(
                 child: Text(
-                  widget.isSalamOffer
+                  widget.isRanounaVilla
+                      ? RanounaVilla.description
+                      : widget.isSalamOffer
                       ? SalamOffer.description
                       : widget.isBuilding
                       ? PropertyData.buildingDescription
@@ -155,8 +213,13 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
               const SizedBox(height: 20),
               const SectionTitle('المساحات والتفاصيل'),
               const SizedBox(height: 10),
-              if (widget.isSalamOffer) ...[
-                for (final (floor, description, reserved) in SalamOffer.floors)
+              if (widget.isSalamOffer || widget.isRanounaVilla) ...[
+                for (final (floor, description, reserved)
+                    in widget.isRanounaVilla
+                        ? RanounaVilla.floors.map(
+                            (floor) => (floor.$1, floor.$2, false),
+                          )
+                        : SalamOffer.floors)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: AppCard(
@@ -209,14 +272,24 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
               const SizedBox(height: 22),
               const SectionTitle('شاهد العقار بالفيديو'),
               const SizedBox(height: 10),
-              if (widget.isSalamOffer)
+              if (widget.isRanounaVilla)
+                const Center(
+                  child: SizedBox(
+                    width: 395,
+                    child: PropertyVideo(
+                      clips: [('جولة فيلا الرانوناء', RanounaVilla.tour)],
+                      poster: RanounaVilla.poster,
+                    ),
+                  ),
+                )
+              else if (widget.isSalamOffer)
                 const PropertyVideo(
                   clips: SalamOffer.clips,
                   poster: 'assets/images/mb-246/02-living-stairs.jpg',
                 )
               else
                 const PropertyVideo(),
-              if (!widget.isSalamOffer) ...[
+              if (_showsMap) ...[
                 const SizedBox(height: 22),
                 const SectionTitle('موقع العقار'),
                 const SizedBox(height: 10),
@@ -282,7 +355,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       icon: Icons.chat_bubble_outline_rounded,
                       onPressed: () => ContactScreen.whatsapp(
                         context,
-                        message: widget.isSalamOffer
+                        message: widget.isRanounaVilla
+                            ? RanounaVilla.inquiry
+                            : widget.isSalamOffer
                             ? 'السلام عليكم، أود الاستفسار عن العرض ${SalamOffer.reference}.'
                             : widget.isBuilding
                             ? PropertyData.buildingInquiry
@@ -293,11 +368,13 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   ),
                 ],
               ),
-              if (widget.isSalamOffer) ...[
+              if (widget.isSalamOffer || widget.isRanounaVilla) ...[
                 const SizedBox(height: 16),
-                const Text(
-                  SalamOffer.advertisingLicenseLabel,
-                  style: TextStyle(color: AppColors.muted, fontSize: 12),
+                Text(
+                  widget.isRanounaVilla
+                      ? 'ترخيص الإعلان العقاري: ${RanounaVilla.license}'
+                      : SalamOffer.advertisingLicenseLabel,
+                  style: const TextStyle(color: AppColors.muted, fontSize: 12),
                 ),
               ],
               const SizedBox(height: 12),
@@ -334,13 +411,22 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) =>
-                              PhotoViewer(startIndex: i, photos: _photos),
+                          builder: (_) => PhotoViewer(
+                            startIndex: i,
+                            photos: _photos,
+                            showNavigation: widget.isRanounaVilla,
+                          ),
                         ),
                       ),
                       child: ColoredBox(
                         color: Colors.white,
-                        child: Image.asset(_photos[i], fit: BoxFit.contain),
+                        child: Image.asset(
+                          _photos[i],
+                          fit: BoxFit.contain,
+                          semanticLabel: widget.isRanounaVilla
+                              ? RanounaVilla.photos[i].$2
+                              : null,
+                        ),
                       ),
                     ),
                   ),
@@ -396,7 +482,15 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(9),
-                    child: Image.asset(_photos[i], fit: BoxFit.cover),
+                    child: Image.asset(
+                      widget.isRanounaVilla
+                          ? '${RanounaVilla.images}/${RanounaVilla.photos[i].$1}-thumb.webp'
+                          : _photos[i],
+                      fit: BoxFit.cover,
+                      semanticLabel: widget.isRanounaVilla
+                          ? RanounaVilla.photos[i].$2
+                          : null,
+                    ),
                   ),
                 ),
               ),

@@ -10,7 +10,6 @@ import 'screens/app_shell.dart';
 import 'screens/contact_screen.dart';
 import 'screens/privacy_screen.dart';
 import 'screens/property_details_screen.dart';
-import 'screens/ranouna_villa_screen.dart';
 
 class AppColors {
   static const navy = Color(0xFF102B3F);
@@ -67,7 +66,7 @@ class _SafwatAppState extends State<SafwatApp> {
           path: RanounaVilla.path,
           whatsappMessage: RanounaVilla.inquiry,
           floatingContactAlignment: Alignment.bottomRight,
-          child: RanounaVillaScreen(),
+          child: PropertyDetailsScreen(isRanounaVilla: true),
         ),
       ),
       for (final section in AppSection.values)
