@@ -488,11 +488,9 @@ class PhotoViewer extends StatefulWidget {
     super.key,
     required this.startIndex,
     required this.photos,
-    this.showNavigation = false,
   });
   final int startIndex;
   final List<String> photos;
-  final bool showNavigation;
   @override
   State<PhotoViewer> createState() => _PhotoViewerState();
 }
@@ -524,34 +522,9 @@ class _PhotoViewerState extends State<PhotoViewer> {
         style: const TextStyle(fontSize: 14),
       ),
       leading: IconButton(
-        tooltip: 'إغلاق الصور',
         icon: const Icon(Icons.close),
         onPressed: () => Navigator.pop(context),
       ),
-      actions: widget.showNavigation
-          ? [
-              IconButton(
-                tooltip: 'الصورة السابقة',
-                onPressed: _index > 0
-                    ? () => _controller.previousPage(
-                        duration: const Duration(milliseconds: 220),
-                        curve: Curves.easeOut,
-                      )
-                    : null,
-                icon: const Icon(Icons.chevron_right_rounded),
-              ),
-              IconButton(
-                tooltip: 'الصورة التالية',
-                onPressed: _index + 1 < widget.photos.length
-                    ? () => _controller.nextPage(
-                        duration: const Duration(milliseconds: 220),
-                        curve: Curves.easeOut,
-                      )
-                    : null,
-                icon: const Icon(Icons.chevron_left_rounded),
-              ),
-            ]
-          : null,
     ),
     body: PageView.builder(
       controller: _controller,

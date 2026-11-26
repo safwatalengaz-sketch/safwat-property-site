@@ -14,7 +14,6 @@ ROUTES = {
     "properties": ("تفاصيل العقار", "تعرف على مواصفات العقار وصوره وطرق التواصل في المدينة المنورة."),
     "properties/king-fahd-building": ("عمارة سكنية في حي الملك فهد", "تفاصيل عمارة سكنية من ثلاثة أدوار تضم ست شقق في المدينة المنورة."),
     "properties/mb-246": ("شقق حي السلام | MB:246", "ثلاث شقق فاخرة في حي السلام بالمدينة المنورة. شاهد الصور والجولة وتفاصيل الأدوار."),
-    "villas/ranouna-200": ("فيلا للبيع في مخطط الرانوناء", "فيلا في مخطط الرانوناء داخل الحد، بسعر ١٬١٥٠٬٠٠٠ ريال سعودي. مساحة الأرض ٢٠٠ م² والبناء ٢٩٠ م². شاهد الصور والجولة وتفاصيل الأدوار."),
     "tours": ("الجولات العقارية المصورة", "شاهد مقاطع فيديو العقار في حي الملك فهد."),
     "about": ("من نحن", "تعرف على صفوة الإنجاز العقارية وخدماتها في المدينة المنورة."),
     "contact": ("التواصل والاستفسارات", "تواصل مع صفوة الإنجاز العقارية بالهاتف أو واتساب."),
@@ -45,21 +44,16 @@ for script in ("marketing-config.js", "marketing.js", "flutter_bootstrap.js"):
 
 for route, (title, description) in ROUTES.items():
     folder = output / route
-    folder.mkdir(parents=True, exist_ok=True)
+    folder.mkdir(exist_ok=True)
     canonical = SITE + (route + "/" if route else "")
     title = escape(title + (" | صفوة الإنجاز" if route else ""))
     description = escape(description)
     page = re.sub(r"<title>[^<]*</title>", f"<title>{title}</title>", shell)
-    share_image = (
-        "assets/assets/images/ranouna/facade-share.jpg"
-        if route == "villas/ranouna-200"
-        else "safwat-share.png"
-    )
     for attribute, key, value in (
         ("name", "description", description),
         ("property", "og:title", title),
         ("property", "og:description", description),
-        ("property", "og:image", SITE + share_image),
+        ("property", "og:image", SITE + "safwat-share.png"),
     ):
         page = re.sub(
             rf'<meta {attribute}="{key}" content="[^"]*">',

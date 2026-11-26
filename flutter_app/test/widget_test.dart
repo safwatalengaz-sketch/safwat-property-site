@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:safwat_property_app/app.dart';
-import 'package:safwat_property_app/data/ranouna_villa.dart';
 import 'package:safwat_property_app/data/salam_offer.dart';
 import 'package:safwat_property_app/screens/property_details_screen.dart';
 import 'package:safwat_property_app/screens/privacy_screen.dart';
-import 'package:safwat_property_app/screens/ranouna_villa_screen.dart';
 import 'package:safwat_property_app/screens/works_screen.dart';
 
 void main() {
@@ -19,8 +17,7 @@ void main() {
     expect(find.text('العقارات المتاحة'), findsOneWidget);
     final kingFahd = find.byType(KingFahdBuildingCard);
     final salam = find.byType(SalamOfferCard);
-    final ranouna = find.byType(RanounaVillaCard);
-    for (final card in [kingFahd, salam, ranouna]) {
+    for (final card in [kingFahd, salam]) {
       Finder action(String label) =>
           find.descendant(of: card, matching: find.text(label));
       final browse = action('استعراض العقار');
@@ -138,58 +135,6 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(WorksScreen), findsOneWidget);
     expect(find.byType(SalamOfferCard), findsOneWidget);
-    final villaDetails = find.descendant(
-      of: find.byType(RanounaVillaCard),
-      matching: find.text('استعراض العقار'),
-    );
-    await tester.ensureVisible(villaDetails);
-    await tester.pumpAndSettle();
-    await tester.tap(villaDetails);
-    await tester.pumpAndSettle();
-    expect(find.byType(RanounaVillaScreen), findsOneWidget);
-  });
-
-  testWidgets('Ranouna opens directly and shows its details and full photos', (
-    tester,
-  ) async {
-    tester.view.devicePixelRatio = 1;
-    tester.view.physicalSize = const Size(390, 844);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    addTearDown(tester.view.resetPhysicalSize);
-    final dispatcher = tester.binding.platformDispatcher;
-    dispatcher.defaultRouteNameTestValue = '${RanounaVilla.path}/';
-    addTearDown(dispatcher.clearDefaultRouteNameTestValue);
-
-    await tester.pumpWidget(const SafwatApp());
-    await tester.pumpAndSettle();
-    expect(find.text(RanounaVilla.title), findsOneWidget);
-    expect(find.text(RanounaVilla.price), findsOneWidget);
-    expect(find.text(RanounaVilla.location), findsOneWidget);
-    final scrollable = find.descendant(
-      of: find.byType(CustomScrollView),
-      matching: find.byType(Scrollable),
-    );
-    final facade = find.text('واجهة الفيلا');
-    await tester.scrollUntilVisible(
-      facade.hitTestable(),
-      220,
-      scrollable: scrollable,
-    );
-    await tester.tap(facade);
-    await tester.pumpAndSettle();
-    expect(find.text('1 / ${RanounaVilla.photos.length}'), findsOneWidget);
-    await tester.tap(find.byTooltip('الصورة التالية'));
-    await tester.pumpAndSettle();
-    expect(find.text('2 / ${RanounaVilla.photos.length}'), findsOneWidget);
-    await tester.tap(find.byTooltip('إغلاق الصور'));
-    await tester.pumpAndSettle();
-
-    final license = find.textContaining(RanounaVilla.license);
-    await tester.scrollUntilVisible(license, 460, scrollable: scrollable);
-    expect(license, findsOneWidget);
-    expect(find.text('الملحق'), findsOneWidget);
-    expect(find.textContaining('شارع 6'), findsNothing);
-    expect(tester.takeException(), isNull);
   });
 
   testWidgets('MB:246 opens directly with its photos and reserved floor', (
