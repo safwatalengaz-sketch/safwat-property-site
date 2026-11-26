@@ -4,8 +4,8 @@ const { join } = require('node:path');
 const { test } = require('node:test');
 const vm = require('node:vm');
 
-function site(preference, privacySignals = {}, query = '?gclid=example', referrer = '') {
-  const values = new Map([['safwat-snap-marketing-v1', preference ?? null]]);
+function site(preference, privacySignals = {}, query = '?gclid=example', referrer = '', dismissal = {}) {
+  const values = new Map([['safwat-snap-marketing-v1', preference ?? null], ...Object.entries(dismissal)]);
   const scripts = [];
   const scriptElements = [];
   const preloads = [];
@@ -96,7 +96,7 @@ test('a new visitor queues one limited Google view per route and one conversion 
   marketing.dismissWelcome();
   marketing.dismissWelcome();
   assert.equal(marketing.showWelcome(), false);
-  assert.equal(browser.localStorage.getItem('safwat-entrance-dismissed-v1'), '1');
+  assert.equal(browser.localStorage.getItem('safwat-entrance-dismissed-v2'), '1');
   assert.equal(browser.localStorage.getItem('safwat-snap-marketing-v1'), null);
   marketing.page('/properties/mb-246');
   browser.location.href = 'https://example.test/works';
@@ -259,4 +259,30 @@ test('a script load failure retries once without adding another conversion', () 
   assert.equal(snapLoads.length, 2);
   assert.equal(snapLoads[1].onerror, undefined);
   assert.equal(browser.snaptr.queue.filter(event => event[1] === 'CUSTOM_EVENT_2').length, 1);
+});
+
+for (const [label, preference, query, showCard] of [
+  ['no saved choice', null, '', true],
+  ['debug URL without a saved choice', null, '?_dbg=1', true],
+  ['saved refusal', 'deny', '', false],
+  ['legacy ads-only approval', 'allow', '', false],
+  ['current approval', 'allow-analytics-v1', '', false],
+]) {
+  test(`legacy card dismissal with ${label}`, () => {
+    const { marketing, scripts, browser } = site(preference, {}, query, '', {
+      'safwat-entrance-dismissed-v1': '1',
+    });
+    marketing.page('/properties/mb-246');
+    assert.equal(marketing.showWelcome(), showCard);
+    assert.equal(browser.localStorage.getItem('safwat-snap-marketing-v1'), preference);
+    if (showCard || preference === 'deny') assert.deepEqual(scripts, []);
+  });
+}
+
+test('dismissal of the current card is retained without implying consent', () => {
+  const { marketing } = site(null, { globalPrivacyControl: true }, '', '', {
+    'safwat-entrance-dismissed-v2': '1',
+  });
+  assert.equal(marketing.showWelcome(), false);
+  assert.equal(marketing.allowed(), false);
 });

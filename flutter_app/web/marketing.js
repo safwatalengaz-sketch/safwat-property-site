@@ -3,7 +3,8 @@
 
   const config = window.safwatMarketingConfig || {};
   const preferenceKey = 'safwat-snap-marketing-v1';
-  const entranceKey = 'safwat-entrance-dismissed-v1';
+  // The previous card could be dismissed without making a privacy choice.
+  const entranceKey = 'safwat-entrance-dismissed-v2';
   const denialKey = preferenceKey + '-session-denial';
   const analyticsGrant = 'allow-analytics-v1';
   const landingUrl = location.href;
