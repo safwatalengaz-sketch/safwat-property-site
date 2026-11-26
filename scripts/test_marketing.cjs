@@ -169,9 +169,10 @@ test('GA4 starts with disclosed consent and sends only one event per interaction
   const events = browser.dataLayer.filter(e => e[0] === 'event' && e[2]?.send_to === id);
   const configuration = browser.dataLayer.filter(e => e[0] === 'config' && e[1] === id);
   assert.equal(configuration.length, 1);
-  assert.equal(configuration[0][2].send_page_view, false);
+  assert.equal(configuration[0][2].send_page_view, true);
+  assert.equal(configuration[0][2].page_location, 'https://example.test/properties/mb-246');
   assert.deepEqual(Array.from(events, e => e[1]), [
-    'page_view', 'whatsapp_click', 'phone_click', 'page_view', 'page_view',
+    'whatsapp_click', 'phone_click', 'page_view', 'page_view',
   ]);
   assert.equal(events[0][2].page_location, 'https://example.test/properties/mb-246');
   assert.ok(events.every(e => !e[2].page_location.includes('?')));
@@ -185,7 +186,7 @@ test('GA4 does not run in the limited Google Ads path or after refusal', () => {
   marketing.contact('phone');
   assert.ok(browser.dataLayer.every(e => e[1] !== id && e[2]?.send_to !== id));
   marketing.setAllowed(true);
-  assert.equal(browser.dataLayer.filter(e => e[1] === 'page_view' && e[2]?.send_to === id).length, 1);
+  assert.equal(browser.dataLayer.filter(e => e[0] === 'config' && e[1] === id && e[2].send_page_view).length, 1);
   marketing.setAllowed(false);
   marketing.contact('phone');
   assert.equal(browser.dataLayer.filter(e => e[1] === 'phone_click' && e[2]?.send_to === id).length, 0);

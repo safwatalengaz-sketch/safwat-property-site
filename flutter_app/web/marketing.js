@@ -143,11 +143,14 @@
         window.gtag('consent', 'update', { analytics_storage: 'granted' });
         window.gtag('config', config.googleAnalyticsId, {
           ...googlePageContext(),
-          send_page_view: false,
+          groups: 'safwat_analytics',
+          send_page_view: event === 'page_view',
           allow_google_signals: false,
           allow_ad_personalization_signals: false,
         });
         analyticsInitialized = true;
+        // The GA4 config sends the first view. Only later routes need a manual event.
+        if (event === 'page_view') return;
       }
       window.gtag('event', event, { ...googlePageContext(), send_to: config.googleAnalyticsId });
     });
