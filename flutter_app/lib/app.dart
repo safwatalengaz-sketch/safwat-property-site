@@ -4,11 +4,13 @@ import 'package:go_router/go_router.dart';
 
 import 'analytics/marketing.dart';
 import 'data/property_data.dart';
+import 'data/ranouna_villa.dart';
 import 'data/salam_offer.dart';
 import 'screens/app_shell.dart';
 import 'screens/contact_screen.dart';
 import 'screens/privacy_screen.dart';
 import 'screens/property_details_screen.dart';
+import 'screens/ranouna_villa_screen.dart';
 
 class AppColors {
   static const navy = Color(0xFF102B3F);
@@ -57,6 +59,15 @@ class _SafwatAppState extends State<SafwatApp> {
         builder: (context, state) => const _MeasuredScreen(
           path: SalamOffer.path,
           child: PropertyDetailsScreen(isSalamOffer: true),
+        ),
+      ),
+      GoRoute(
+        path: RanounaVilla.path,
+        builder: (context, state) => const _MeasuredScreen(
+          path: RanounaVilla.path,
+          whatsappMessage: RanounaVilla.inquiry,
+          floatingContactAlignment: Alignment.bottomRight,
+          child: RanounaVillaScreen(),
         ),
       ),
       for (final section in AppSection.values)
@@ -187,10 +198,17 @@ class _SafwatAppState extends State<SafwatApp> {
 }
 
 class _MeasuredScreen extends StatefulWidget {
-  const _MeasuredScreen({required this.path, required this.child});
+  const _MeasuredScreen({
+    required this.path,
+    required this.child,
+    this.whatsappMessage,
+    this.floatingContactAlignment = Alignment.centerRight,
+  });
 
   final String path;
   final Widget child;
+  final String? whatsappMessage;
+  final Alignment floatingContactAlignment;
 
   @override
   State<_MeasuredScreen> createState() => _MeasuredScreenState();
@@ -221,9 +239,14 @@ class _MeasuredScreenState extends State<_MeasuredScreen> {
     children: [
       widget.child,
       SafeArea(
-        minimum: const EdgeInsets.only(right: 8),
+        minimum: EdgeInsets.only(
+          right: 8,
+          bottom: widget.floatingContactAlignment == Alignment.bottomRight
+              ? 12
+              : 0,
+        ),
         child: Align(
-          alignment: Alignment.centerRight,
+          alignment: widget.floatingContactAlignment,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -234,7 +257,10 @@ class _MeasuredScreenState extends State<_MeasuredScreen> {
                   backgroundColor: const Color(0xFF087648),
                   foregroundColor: Colors.white,
                 ),
-                onPressed: () => ContactScreen.whatsapp(context),
+                onPressed: () => ContactScreen.whatsapp(
+                  context,
+                  message: widget.whatsappMessage,
+                ),
                 icon: const FaIcon(FontAwesomeIcons.whatsapp, size: 24),
               ),
               const SizedBox(height: 8),
